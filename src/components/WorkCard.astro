@@ -1,0 +1,48 @@
+---
+/**
+ * 作品卡（全彩）。lead＝首頁精選的大卡，多一段劇情簡介。
+ * 獲獎徽章放在 metadata 行，不蓋在縮圖上（縮圖常有片名或桂冠標章）。
+ */
+import { Image } from 'astro:assets';
+import { routes } from '../data/site';
+import { categoryLabel } from '../data/categories';
+import { directorsOf, workMetaParts, type Member, type Work } from '../data/queries';
+
+interface Props {
+  work: Work;
+  teamById: Map<string, Member>;
+  lead?: boolean;
+  eager?: boolean;
+}
+
+const { work, teamById, lead = false, eager = false } = Astro.props;
+const { title, slug, thumb, thumbAlt, synopsis, awards, client, platform, credits } = work.data;
+
+const meta = workMetaParts(work, categoryLabel).join('・');
+const award = awards[0];
+const directors = directorsOf(work, teamById).map((m) => m.data.name).join('・');
+const external = credits.filter((c) => !c.team && c.name).map((c) => c.name);
+const creditParts = [
+  `導演 ${directors}`,
+  ...(external.length ? [`協作 ${external.join('、')}`] : []),
+  ...(platform ? [`${platform} 委製`] : client ? [client] : []),
+];
+---
+
+<a class:list={['work-card', lead && 'work-card--lead']} href={routes.work(slug)}>
+  <div class="work-card__thumb">
+    <Image
+      src={thumb}
+      alt={thumbAlt}
+      widths={lead ? [640, 960, 1280] : [480, 800]}
+      sizes={lead ? '(max-width: 1024px) 100vw, 820px' : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px'}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding="async"
+    />
+    <span class="work-card__play" aria-hidden="true">▶</span>
+  </div>
+  <p class="meta">{meta}{award && <span class="badge">{award.result}</span>}</p>
+  <h3 class="work-card__title">{title}</h3>
+  {lead && <p class="work-card__desc">{synopsis}</p>}
+  <p class="work-card__credit">{creditParts.join('｜')}</p>
+</a>

@@ -1,0 +1,559 @@
+---
+/**
+ * BaseLayout — 頁首、選單、頁尾，以及 Organization + WebSite + BreadcrumbList schema 引擎
+ * （沿用圖鑑的引擎，換成公司資料；設計文件 §7-1、§9-1）
+ */
+import '../styles/global.css';
+import {
+  SITE,
+  COMPANY,
+  PRIMARY_NAV,
+  FOOTER_SERVICES,
+  href,
+  absUrl,
+  absRoutes,
+  routes,
+  legalNameLine,
+} from '../data/site';
+import { getSiteData } from '../data/queries';
+
+interface Props {
+  /** <h1> 用的標題（雙標題制：title 給 h1，seoTitle 給 <title>/og） */
+  title?: string;
+  seoTitle?: string;
+  description?: string;
+  /** 站內相對路徑（/og-default.png）、Astro 圖片的 src（/_astro/...）或絕對 URL */
+  ogImage?: string;
+  ogType?: 'website' | 'profile' | 'video.other';
+  /** 頁面自帶的 JSON-LD（Person / VideoObject / Service / FAQPage…） */
+  schemas?: object[];
+  /** 覆寫自動（依 URL path）生成的麵包屑：首頁之後的完整層級，需與頁面可見麵包屑一致 */
+  breadcrumbs?: { name: string; item: string }[];
+  /** 其他語言版本（P2 日文版上線後填入，同時輸出 hreflang 與語言切換） */
+  alternates?: { lang: string; label: string; href: string }[];
+  noindex?: boolean;
+}
+
+const {
+  title,
+  seoTitle,
+  description,
+  ogImage = '/og-default.png',
+  ogType = 'website',
+  schemas = [],
+  breadcrumbs,
+  alternates = [],
+  noindex = false,
+} = Astro.props;
+
+const brand = `${SITE.name} ${SITE.nameEn}`;
+const metaTitle = seoTitle ?? title;
+const pageTitle = metaTitle ? `${metaTitle}｜${brand}` : `${brand}｜AI 廣告、MV 與短劇製作`;
+const pageDesc = description ?? SITE.description;
+
+/* 去掉 base 之後的 path（canonical、麵包屑、nav 高亮共用） */
+const basePrefix = SITE.base === '/' ? '' : SITE.base;
+const pathNoBase = Astro.url.pathname.startsWith(basePrefix)
+  ? Astro.url.pathname.slice(basePrefix.length)
+  : Astro.url.pathname;
+const pathSegments = pathNoBase.replace(/\/$/, '').split('/').filter(Boolean);
+
+/* 404 頁實際輸出為 /404.html（GitHub Pages 以此檔回應所有不存在的網址） */
+const canonicalUrl = /^\/404(\/|\.html)?$/.test(pathNoBase)
+  ? absUrl('/404.html')
+  : new URL(Astro.url.pathname, SITE.origin).toString();
+const ogImageUrl = /^https?:/.test(ogImage)
+  ? ogImage
+  : ogImage.startsWith(SITE.base) && SITE.base !== '/'
+    ? `${SITE.origin}${ogImage}`
+    : absUrl(ogImage);
+
+const { team } = await getSiteData();
+
+/* ── 全域 Organization schema（每頁輸出；Person / VideoObject 以 @id 參照） ── */
+const orgSameAs = Object.values(SITE.social).filter(Boolean);
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': absRoutes.organizationId(),
+  name: SITE.name,
+  legalName: COMPANY.legalName,
+  alternateName: COMPANY.alternateNames,
+  url: `${SITE.url}/`,
+  description: SITE.description,
+  logo: {
+    '@type': 'ImageObject',
+    '@id': `${SITE.url}/#logo`,
+    url: absUrl('/logo.png'),
+    contentUrl: absUrl('/logo.png'),
+    width: 512,
+    height: 512,
+    caption: SITE.name,
+  },
+  image: { '@id': `${SITE.url}/#logo` },
+  email: SITE.email,
+  founder: team.map((m) => ({
+    '@type': 'Person',
+    '@id': absRoutes.personId(m.id),
+    name: m.data.name,
+    url: absRoutes.team(m.id),
+  })),
+  knowsLanguage: ['zh-Hant', 'ja'],
+  areaServed: [
+    { '@type': 'Country', name: 'Taiwan' },
+    { '@type': 'Country', name: 'Japan' },
+  ],
+  ...(COMPANY.taxId ? { taxID: COMPANY.taxId } : {}),
+  ...(orgSameAs.length ? { sameAs: orgSameAs } : {}),
+};
+
+/* ── 全域 WebSite schema：Google 的站名支援子網域層級，搜尋結果才會顯示幻五而不是圖鑑 ── */
+const webSiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': absRoutes.websiteId(),
+  url: `${SITE.url}/`,
+  name: SITE.name,
+  alternateName: SITE.nameEn,
+  description: SITE.description,
+  publisher: { '@id': absRoutes.organizationId() },
+  inLanguage: SITE.locale,
+};
+
+/* ── BreadcrumbList：依 URL path 自動生成（動態頁請自行傳 breadcrumbs） ── */
+const breadcrumbLabels: Record<string, string> = {
+  works: '作品',
+  services: '服務',
+  about: '關於幻五',
+  team: '創辦人',
+  contact: '洽詢',
+  privacy: '隱私權政策',
+};
+
+type BreadcrumbItem = { '@type': 'ListItem'; position: number; name: string; item: string };
+const breadcrumbItems: BreadcrumbItem[] = [{ '@type': 'ListItem', position: 1, name: '首頁', item: `${SITE.url}/` }];
+
+if (breadcrumbs) {
+  breadcrumbs.forEach((b, i) => {
+    breadcrumbItems.push({ '@type': 'ListItem', position: i + 2, name: b.name, item: b.item });
+  });
+} else {
+  let cumulativePath = '';
+  pathSegments.forEach((seg, i) => {
+    cumulativePath += `/${seg}`;
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: i + 2,
+      name: breadcrumbLabels[seg] ?? seg,
+      item: `${SITE.url}${cumulativePath}/`,
+    });
+  });
+}
+
+const breadcrumbSchema =
+  breadcrumbItems.length > 1
+    ? { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: breadcrumbItems }
+    : null;
+
+const allSchemas = [organizationSchema, webSiteSchema, ...(breadcrumbSchema ? [breadcrumbSchema] : []), ...schemas];
+
+const FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap';
+
+// 版權年：build 時取當下台北年份
+const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
+
+/* 目前所在的主分區（nav 高亮；/team/ 歸在「關於」） */
+const currentSection = pathSegments[0] === 'team' ? 'about' : (pathSegments[0] ?? '');
+const navIsActive = (navHref: string) => currentSection === navHref.replace(/\//g, '');
+---
+
+<!doctype html>
+<html lang={SITE.locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={pageDesc} />
+    <meta
+      name="robots"
+      content={noindex ? 'noindex, follow' : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+    />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <link rel="canonical" href={canonicalUrl} />
+    {
+      alternates.length > 0 && (
+        <>
+          <link rel="alternate" hreflang="zh-Hant-TW" href={canonicalUrl} />
+          {alternates.map((a) => (
+            <link rel="alternate" hreflang={a.lang} href={absUrl(a.href)} />
+          ))}
+          <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+        </>
+      )
+    }
+    <link rel="icon" href={href('/favicon.ico')} sizes="any" />
+    <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+    <link rel="apple-touch-icon" sizes="180x180" href={href('/apple-touch-icon.png')} />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content={brand} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDesc} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:alt" content={`${pageTitle} 分享縮圖`} />
+    <meta property="og:locale" content="zh_TW" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDesc} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Non-blocking font loading（只載拉丁字的 Archivo，中文用系統字；設計文件 §6-3） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={FONTS_CSS} media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href={FONTS_CSS} /></noscript>
+
+    {
+      allSchemas.map((schema) => (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(schema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')}
+        />
+      ))
+    }
+
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a href="#main" class="skip">跳至主要內容</a>
+
+    <header class="hd">
+      <a class="brand" href={routes.home()} aria-label={`${brand} 首頁`}>
+        <span class="brand__zh">{SITE.name}</span>
+        <span class="brand__en">{SITE.nameEn}</span>
+      </a>
+      <nav class="nav" aria-label="主選單">
+        {
+          PRIMARY_NAV.map((item) => (
+            <a
+              href={href(item.href)}
+              class:list={['nav__link', navIsActive(item.href) && 'is-active']}
+              aria-current={navIsActive(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+              <span class="nav__en">{item.labelEn}</span>
+            </a>
+          ))
+        }
+      </nav>
+      <div class="hd__right">
+        {
+          alternates.length > 0 && (
+            <span class="lang">
+              <b>中</b>
+              {alternates.map((a) => (
+                <>
+                  <span aria-hidden="true">｜</span>
+                  <a href={href(a.href)} hreflang={a.lang} lang={a.lang}>
+                    {a.label}
+                  </a>
+                </>
+              ))}
+            </span>
+          )
+        }
+        <a class="btn btn--accent btn--sm hd__cta" href={routes.contact()}>專案洽詢</a>
+        <details class="menu">
+          <summary aria-label="開啟選單">選單</summary>
+          <nav class="menu__panel" aria-label="行動版選單">
+            {PRIMARY_NAV.map((item) => <a href={href(item.href)}>{item.label}</a>)}
+            {alternates.map((a) => <a href={href(a.href)} lang={a.lang}>{a.label}</a>)}
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="ft">
+      <div class="container">
+        <div class="ft__grid">
+          <div class="ft__brand">
+            <a class="brand" href={routes.home()}>
+              <span class="brand__zh">{SITE.name}</span>
+              <span class="brand__en">{SITE.nameEn}</span>
+            </a>
+            <p>{SITE.tagline}<br />AI 廣告、MV 與短劇製作，以及 AI 影片課程與導入顧問。</p>
+            <p><a class="ft__mail" href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+          </div>
+          <div>
+            <p class="ft__h">Services</p>
+            <ul class="ft__list">
+              {FOOTER_SERVICES.map((n) => <li><a href={href(n.href)}>{n.label}</a></li>)}
+            </ul>
+          </div>
+          <div>
+            <p class="ft__h">Company</p>
+            <ul class="ft__list">
+              <li><a href={routes.about()}>關於幻五</a></li>
+              {team.map((m) => <li><a href={routes.team(m.id)}>{m.data.name}</a></li>)}
+              <li><a href={routes.contact()}>洽詢</a></li>
+              <li><a href={routes.privacy()}>隱私權政策</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="ft__h">Related</p>
+            <ul class="ft__list">
+              <li><a href={SITE.directory.url}>{SITE.directory.name} ↗</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ft__legal">
+          <span>{legalNameLine()}{COMPANY.taxId && `・統一編號 ${COMPANY.taxId}`}</span>
+          <span class="latin">© {currentYear} {SITE.nameEn}</span>
+        </div>
+      </div>
+    </footer>
+
+    <style>
+      .skip {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+      }
+      .skip:focus {
+        left: 12px;
+        top: 12px;
+        z-index: 100;
+        padding: 8px 12px;
+        background: var(--text);
+        color: var(--bg);
+      }
+
+      /* ── 頁首 ─────────────────────────────── */
+      .hd {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        height: var(--header-h);
+        padding: 0 var(--gutter);
+        background: rgb(14 14 16 / 0.72);
+        backdrop-filter: blur(14px) saturate(1.2);
+        -webkit-backdrop-filter: blur(14px) saturate(1.2);
+        border-bottom: 1px solid rgb(241 237 230 / 0.07);
+      }
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        white-space: nowrap;
+      }
+      .brand__zh {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+      }
+      .brand__en {
+        font-family: var(--font-latin);
+        font-stretch: 125%;
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        color: var(--muted);
+      }
+      .nav {
+        display: flex;
+        gap: 30px;
+        margin-left: auto;
+        font-size: 15px;
+      }
+      .nav__link {
+        position: relative;
+        padding: 6px 0;
+        color: var(--muted);
+        transition: color 0.2s;
+      }
+      .nav__link:hover,
+      .nav__link.is-active {
+        color: var(--text);
+      }
+      .nav__link.is-active::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -2px;
+        height: 1px;
+        background: var(--text);
+      }
+      .nav__en {
+        margin-left: 6px;
+        font-family: var(--font-latin);
+        font-stretch: 112%;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        color: #75716a;
+      }
+      .hd__right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .lang {
+        display: flex;
+        gap: 4px;
+        font-size: 13px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .lang b {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .menu {
+        display: none;
+        position: relative;
+      }
+      .menu summary {
+        display: grid;
+        place-items: center;
+        height: 38px;
+        padding: 0 12px;
+        font-size: 14px;
+        list-style: none;
+        cursor: pointer;
+        border: 1px solid var(--line);
+      }
+      .menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .menu__panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 10px);
+        display: grid;
+        width: 220px;
+        padding: 8px;
+        background: var(--bg-raised);
+        border: 1px solid var(--line);
+      }
+      .menu__panel a {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .menu__panel a:last-child {
+        border-bottom: 0;
+      }
+
+      /* ── 頁尾 ─────────────────────────────── */
+      .ft {
+        padding: 72px 0 48px;
+        font-size: 14px;
+        color: var(--muted);
+        background: var(--bg-sunken);
+        border-top: 1px solid var(--line);
+      }
+      .ft__grid {
+        display: grid;
+        grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
+        gap: 36px;
+      }
+      .ft__brand .brand {
+        margin-bottom: 16px;
+      }
+      .ft__brand p {
+        max-width: 24em;
+      }
+      .ft__brand p + p {
+        margin-top: 12px;
+      }
+      .ft__mail {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      .ft__h {
+        margin-bottom: 14px;
+        font-family: var(--font-latin);
+        font-stretch: 125%;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+      .ft__list {
+        display: grid;
+        gap: 8px;
+      }
+      .ft a {
+        transition: color 0.2s;
+      }
+      .ft a:hover {
+        color: var(--text);
+      }
+      .ft__legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 56px;
+        padding-top: 24px;
+        font-size: 13px;
+        border-top: 1px solid var(--line);
+      }
+
+      @media (max-width: 1024px) {
+        .nav,
+        .lang {
+          display: none;
+        }
+        .menu {
+          display: block;
+        }
+        .hd__right {
+          margin-left: auto;
+          gap: 10px;
+        }
+        .ft__grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 640px) {
+        .brand__en {
+          display: none;
+        }
+        .ft__brand .brand__en {
+          display: inline;
+        }
+        .ft__grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+
+    <script>
+      /* 行動版選單：Esc 或點選單外面就收起來 */
+      const menu = document.querySelector<HTMLDetailsElement>('.menu');
+      if (menu) {
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && menu.open) {
+            menu.open = false;
+            menu.querySelector('summary')?.focus();
+          }
+        });
+        document.addEventListener('click', (e) => {
+          if (menu.open && !menu.contains(e.target as Node)) menu.open = false;
+        });
+      }
+    </script>
+  </body>
+</html>

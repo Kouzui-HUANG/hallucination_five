@@ -1,0 +1,245 @@
+---
+/**
+ * /about/ — 關於幻五（設計文件 §3-4）
+ * 公司簡介 → 名字的由來 → 沿革 → 我們相信的事 → 創辦人 → 公司資訊 → 相關計畫（圖鑑的利益揭露） → CTA
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import PersonCard from '../components/PersonCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getSiteData } from '../data/queries';
+import { SITE, COMPANY, legalNameLine, routes, absRoutes } from '../data/site';
+
+const { team } = await getSiteData();
+
+const history = [
+  { year: '2025', text: '黃宏瑞成立幻詠資訊有限公司，全職投入 AI 生成內容。' },
+  { year: '2025', text: '林仲彥以 5Y Studio 為名投入 AI 影片，為品牌與展覽製作 AI 廣告。' },
+  { year: '2025', text: '兩人的作品分別在 Bouquet wiz AI MV 專業賽、愛奇藝 AI 短片創作大賽、Artiver AI Art Awards 獲獎與入圍。' },
+  { year: '2026', text: '兩人同隊參加 GMI Cloud × Wan × DV ASIA AI 影視職人創作大賽，以《間合》拿下第二名。' },
+  { year: '2026', text: '為短劇平台金魚短劇 KIMHIT 製作兩部各 30 集的 AI 短劇。' },
+  { year: '2026', text: '合夥成立幻五娛樂。幻詠資訊有限公司更名並改制為幻五娛樂科技股份有限公司（登記中）。' },
+];
+
+const beliefs = [
+  { title: '故事先於工具', body: '先把故事寫好，再決定哪些畫面交給 AI。工具幾個月就換代，好故事不會過期。' },
+  { title: '每一格都經過人的判斷', body: 'AI 負責生成，導演負責挑選、重做與修正。交出去的每一格畫面，都有人看過、選過。' },
+  { title: '說清楚用了什麼工具', body: '作品頁標出能確認的主要 AI 工具；交付時也會說明製作過程用到的工具與音樂來源。' },
+  { title: '肖像與權利先講清楚', body: '不使用未經同意的真人肖像與聲音；委製作品的權利歸屬與使用範圍寫進合約。' },
+];
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: '關於幻五',
+  url: absRoutes.about(),
+  mainEntity: { '@id': absRoutes.organizationId() },
+};
+---
+
+<BaseLayout
+  title="關於幻五"
+  seoTitle="關於幻五娛樂｜幻詠工作室 × 5Y工作室"
+  description="幻五娛樂由黃宏瑞的幻詠工作室與林仲彥的 5Y工作室合夥成立，前身為幻詠資訊有限公司。公司沿革、名字的由來、我們相信的事與公司資訊。"
+  schemas={[aboutSchema]}
+>
+  <PageHead
+    en="About"
+    title="關於幻五"
+    lead="幻五娛樂由幻詠工作室與 5Y工作室合夥成立。一個從文字與角色設定走進影像，一個從 3D 動態走進 AI；我們把兩套方法放在同一條製作線上。"
+    crumbs={[{ label: '關於幻五' }]}
+  />
+
+  <section class="section" aria-labelledby="name-title">
+    <div class="container about-grid">
+      <SectionHead no="01" en="Our Name" title="名字的由來" id="name-title" />
+      <div class="prose">
+        <p>「幻」取自幻詠，「五」取自 5Y。兩個工作室的名字各留一個字，合成幻五。</p>
+        <p>
+          英文名 HALLUCINATION 是生成式 AI 的「幻覺」：在 AI 圈它是要修掉的缺陷，在影像創作裡，它是想像力的來源。我們做的事，就是把幻覺導演成故事。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="history-title">
+    <div class="container">
+      <SectionHead no="02" en="History" title="沿革" id="history-title" />
+      <ol class="history">
+        {
+          history.map((h) => (
+            <li class="history__item">
+              <span class="history__year">{h.year}</span>
+              <p>{h.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="beliefs-title">
+    <div class="container">
+      <SectionHead no="03" en="What We Believe" title="我們相信的事" id="beliefs-title" />
+      <ul class="beliefs">
+        {
+          beliefs.map((b, i) => (
+            <li class="belief">
+              <span class="belief__no">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{b.title}</h3>
+              <p>{b.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="team-title">
+    <div class="container">
+      <SectionHead no="04" en="Founders" title="創辦人" id="team-title" />
+      <div class="team">
+        {team.map((m) => <PersonCard member={m} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="company-title">
+    <div class="container">
+      <SectionHead no="05" en="Company" title="公司資訊" id="company-title" />
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            <tr><th scope="row">公司名稱</th><td>{legalNameLine()}</td></tr>
+            {COMPANY.taxId && <tr><th scope="row">統一編號</th><td>{COMPANY.taxId}</td></tr>}
+            <tr>
+              <th scope="row">品牌</th>
+              <td>{SITE.name}／{SITE.nameEn}</td>
+            </tr>
+            <tr>
+              <th scope="row">共同創辦人</th>
+              <td>
+                {
+                  team.map((m, i) => (
+                    <>
+                      {i > 0 && '、'}
+                      <a href={routes.team(m.id)}>{m.data.name}</a>
+                    </>
+                  ))
+                }
+              </td>
+            </tr>
+            <tr><th scope="row">服務項目</th><td>商業影片製作、短劇與影集、課程與企業內訓、AI 導入顧問</td></tr>
+            <tr><th scope="row">服務地區與語言</th><td>台灣・日本／中文・日文</td></tr>
+            <tr>
+              <th scope="row">聯絡信箱</th>
+              <td><a href={`mailto:${SITE.email}`}>{SITE.email}</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="related-title">
+    <div class="container about-grid">
+      <SectionHead no="06" en="Related" title="相關計畫" id="related-title" />
+      <div class="prose">
+        <p>
+          創辦人黃宏瑞以個人名義主編<a href={SITE.directory.url}>「{SITE.directory.name}」</a>，收錄以 AI 工具進行影視創作的台灣創作者。
+        </p>
+        <p>
+          圖鑑收錄的 No.001 林仲彥與 No.002 黃宏瑞，就是本公司的兩位共同創辦人；兩人的條目與其他創作者適用同一套收錄準則。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .about-grid :global(.sec-head) {
+    margin-bottom: 0;
+  }
+  .history {
+    border-top: 1px solid var(--line);
+  }
+  .history__item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 24px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .history__year {
+    font: 15px var(--font-mono);
+    color: var(--muted);
+  }
+  .history__item p {
+    color: var(--text-soft);
+  }
+  .beliefs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .belief {
+    padding: 32px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .belief__no {
+    font: 12px var(--font-mono);
+    color: var(--muted);
+  }
+  .belief h3 {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .belief p {
+    margin-top: 12px;
+    color: var(--text-soft);
+  }
+  .team {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .table a {
+    font-weight: 600;
+  }
+  .table a:hover {
+    color: var(--accent);
+  }
+  @media (max-width: 1024px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .team {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .beliefs {
+      grid-template-columns: 1fr;
+    }
+    .belief {
+      padding: 24px 20px;
+    }
+    .history__item {
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+    }
+  }
+</style>

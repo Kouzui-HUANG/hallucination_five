@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# 部署到 GitHub Pages（沿用圖鑑的流程，拿掉每日重建：官網沒有時效性頁面）
+#
+# 觸發：push 到 main，或手動 workflow_dispatch
+#
+# 第一次啟用：
+#   1. GitHub repo → Settings → Pages → Build and deployment → Source 選「GitHub Actions」
+#   2. Settings → Secrets and variables → Actions → Variables 新增
+#      SITE_ORIGIN = https://studio.hallucination28.com
+#   3. public/CNAME 已寫好 studio.hallucination28.com；Settings → Pages → Custom domain
+#      填同一個網域並勾 Enforce HTTPS
+#   4. DNS（Squarespace）只新增一筆 CNAME：studio → kouzui-huang.github.io.
+#      MX、SPF、DKIM 與 apex 的 A 記錄都不要動（設計文件 §9-3）
+# ─────────────────────────────────────────────────────────────────────────────
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # astro.config.mjs 用 git log 算靜態頁的 sitemap lastmod，需要完整歷史
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # vars.SITE_ORIGIN 有設就用它（自訂網域，base /）；沒設就退回專案站位址
+      - name: Resolve deploy target
+        env:
+          SITE_ORIGIN_VAR: ${{ vars.SITE_ORIGIN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          repo="${GITHUB_REPOSITORY#*/}"
+          if [ -n "${SITE_ORIGIN_VAR:-}" ]; then
+            origin="${SITE_ORIGIN_VAR%/}"; base="/"
+          else
+            origin="https://${owner}.github.io"; base="/${repo}"
+          fi
+          echo "SITE_ORIGIN=${origin}" >> "$GITHUB_ENV"
+          echo "BASE_PATH=${base}"     >> "$GITHUB_ENV"
+          echo "部署位置：${origin}${base}"
+
+      - name: Content integrity check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>幻五娛樂 HALLUCINATION FIVE｜AI 廣告、MV 與短劇製作</title>
+<meta name="description" content="幻五娛樂由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇製作，以及 AI 影片課程、企業內訓與 AI 導入顧問。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e10;          /* 顯影液黑 */
+  --bg-raised: #17171a;
+  --bg-sunken: #0a0a0b;
+  --line: #2a2a2f;
+  --text: #f1ede6;        /* 相紙白 */
+  --text-soft: #cfcac2;
+  --muted: #a19c94;
+  --accent: #ff4d3d;      /* 安全燈紅 */
+  --accent-hover: #ff6a5c;
+  --accent-ink: #0e0e10;
+  --font-cjk: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-latin: "Archivo", var(--font-cjk);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1280px;
+  --header-h: 68px;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: var(--header-h); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-cjk);
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.container { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+.latin { font-family: var(--font-latin); }
+
+/* ── 草稿標記 ─────────────────────────────── */
+.draft-flag {
+  position: fixed; left: 12px; bottom: 12px; z-index: 100;
+  font: 600 11px/1 var(--font-mono); letter-spacing: .06em;
+  padding: 7px 10px; background: var(--text); color: var(--bg);
+}
+.todo { outline: 1px dashed rgb(241 237 230 / .4); outline-offset: 6px; }
+.todo-note { font: 11px/1.5 var(--font-mono); color: var(--accent); letter-spacing: .04em; }
+
+/* ── 按鈕 ─────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 48px; padding: 0 24px;
+  font-size: 15px; font-weight: 600; letter-spacing: .06em; white-space: nowrap;
+  border: 1px solid transparent; border-radius: 2px;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.btn--accent { background: var(--accent); color: var(--accent-ink); }
+.btn--accent:hover { background: var(--accent-hover); }
+.btn--ghost { border-color: rgb(241 237 230 / .35); color: var(--text); }
+.btn--ghost:hover { border-color: var(--text); }
+.btn--sm { height: 38px; padding: 0 16px; font-size: 14px; }
+.btn--lg { height: 56px; padding: 0 32px; font-size: 16px; }
+
+.rec {
+  flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 10px var(--accent);
+  animation: rec 1.6s steps(1) infinite;
+}
+@keyframes rec { 50% { opacity: .2; } }
+
+/* ── 頁首 ─────────────────────────────── */
+.hd {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 32px;
+  height: var(--header-h); padding: 0 var(--gutter);
+  background: rgb(14 14 16 / .7);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid rgb(241 237 230 / .07);
+}
+.brand { display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+.brand__zh { font-size: 17px; font-weight: 700; letter-spacing: .14em; }
+.brand__en {
+  font-family: var(--font-latin); font-stretch: 125%; font-weight: 800;
+  font-size: 11px; letter-spacing: .28em; color: var(--muted);
+}
+.nav { display: flex; gap: 30px; margin-left: auto; font-size: 15px; }
+.nav a { position: relative; padding: 6px 0; color: var(--muted); transition: color .2s; }
+.nav a:hover { color: var(--text); }
+.nav a .en {
+  margin-left: 6px; font-family: var(--font-latin); font-stretch: 112%;
+  font-size: 10px; font-weight: 600; letter-spacing: .2em; color: #6f6b64;
+}
+.hd__right { display: flex; align-items: center; gap: 20px; }
+.lang { font-size: 13px; color: var(--muted); letter-spacing: .1em; }
+.lang b { color: var(--text); font-weight: 600; }
+.menu { display: none; position: relative; }
+.menu summary {
+  list-style: none; cursor: pointer;
+  height: 38px; padding: 0 12px; display: grid; place-items: center;
+  border: 1px solid var(--line); font-size: 14px;
+}
+.menu summary::-webkit-details-marker { display: none; }
+.menu__panel {
+  position: absolute; right: 0; top: calc(100% + 10px); width: 220px;
+  display: grid; padding: 8px; background: var(--bg-raised); border: 1px solid var(--line);
+}
+.menu__panel a { padding: 12px; border-bottom: 1px solid var(--line); }
+.menu__panel a:last-child { border-bottom: 0; }
+
+/* ── Hero ─────────────────────────────── */
+.hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: min(92vh, 880px);
+  margin-top: calc(var(--header-h) * -1); padding-top: var(--header-h);
+  display: grid; align-items: end;
+}
+.hero__reel {
+  position: absolute; inset: -12% -6%; z-index: -2;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  transform: rotate(-4deg);
+}
+.reel-col { display: flex; flex-direction: column; gap: 10px; animation: drift 70s linear infinite; }
+.reel-col:nth-child(even) { animation-direction: reverse; animation-duration: 90s; }
+.reel-col img {
+  width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+  filter: grayscale(1) brightness(.5) contrast(1.15);
+}
+@keyframes drift { to { transform: translateY(-50%); } }
+.hero.is-paused .reel-col { animation-play-state: paused; }
+.hero__veil {
+  position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(55% 45% at 88% 8%, rgb(255 77 61 / .26), transparent 70%),
+    linear-gradient(90deg, rgb(14 14 16 / .9) 0%, rgb(14 14 16 / .55) 45%, rgb(14 14 16 / .15) 100%),
+    linear-gradient(180deg, rgb(14 14 16 / .5) 0%, transparent 35%, rgb(14 14 16 / .85) 82%, var(--bg) 100%);
+}
+.hero__veil::after {
+  content: ""; position: absolute; inset: 0; opacity: .14; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.hero__content { padding-top: 120px; padding-bottom: clamp(64px, 11vh, 120px); }
+.eyebrow {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 26px;
+  font-family: var(--font-latin); font-stretch: 112%;
+  font-size: 12px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--muted);
+}
+.hero__title {
+  margin: 0 0 28px;
+  font-size: clamp(40px, 7.4vw, 108px); font-weight: 700; line-height: 1.12; letter-spacing: .02em;
+}
+.hero__title em { font-style: normal; color: var(--accent); }
+.hero__lead { max-width: 33em; margin: 0 0 38px; font-size: clamp(16px, 1.5vw, 19px); color: var(--text-soft); }
+.hero__cta { display: flex; flex-wrap: wrap; gap: 14px; }
+.hero__slate {
+  position: absolute; right: var(--gutter); bottom: clamp(64px, 11vh, 120px);
+  width: 260px; padding: 16px 18px;
+  background: rgb(14 14 16 / .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px dashed rgb(241 237 230 / .35);
+}
+.slate__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.slate__label { font-family: var(--font-latin); font-stretch: 125%; font-size: 11px; font-weight: 700; letter-spacing: .24em; }
+.slate__tc { font: 13px var(--font-mono); color: var(--muted); }
+.slate__play {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgb(241 237 230 / .5);
+  display: grid; place-items: center; font-size: 12px; padding-left: 3px;
+}
+.hero__slate .todo-note { display: block; margin-top: 10px; }
+.reel-toggle {
+  display: block; margin-top: 12px; padding: 0; background: none; border: 0; cursor: pointer;
+  font: 12px var(--font-cjk); color: var(--muted); text-decoration: underline; text-underline-offset: 3px;
+}
+.reel-toggle:hover { color: var(--text); }
+
+/* ── 區塊共用 ─────────────────────────────── */
+.section { padding: clamp(80px, 10vw, 140px) 0; }
+.sec-head {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 24px;
+  margin-bottom: 48px; padding-bottom: 22px; border-bottom: 1px solid var(--line);
+}
+.sec-no { font: 13px/1 var(--font-mono); color: var(--muted); letter-spacing: .1em; padding-bottom: 8px; }
+.sec-head h2 { margin: 0; font-size: clamp(28px, 3.2vw, 42px); font-weight: 700; line-height: 1.2; letter-spacing: .04em; }
+.sec-head h2 .en {
+  display: block; margin-bottom: 10px;
+  font-family: var(--font-latin); font-stretch: 125%;
+  font-size: 12px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--muted);
+}
+.sec-all { font-size: 15px; color: var(--muted); padding-bottom: 6px; transition: color .2s; white-space: nowrap; }
+.sec-all:hover { color: var(--text); }
+
+/* ── 作品 ─────────────────────────────── */
+.works-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px 28px; }
+.work { display: block; }
+.work--lead { grid-column: span 2; grid-row: span 2; }
+.work__thumb { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--bg-raised); }
+.work__thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s cubic-bezier(.2, .7, .2, 1); }
+.work:hover .work__thumb img { transform: scale(1.04); }
+.work__badge {
+  display: inline-flex; align-items: center; gap: 7px; margin-left: 14px;
+  font-family: var(--font-cjk); font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--text);
+}
+.work__badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.work__play {
+  position: absolute; right: 16px; bottom: 16px;
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; padding-left: 3px;
+  font-size: 13px; background: rgb(14 14 16 / .4); border: 1px solid rgb(241 237 230 / .6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; transform: translateY(6px); transition: opacity .3s, transform .3s;
+}
+.work:hover .work__play, .work:focus-visible .work__play { opacity: 1; transform: none; }
+.work__meta { margin-top: 16px; font: 12px/1.6 var(--font-mono); color: var(--muted); letter-spacing: .04em; }
+.work__title { margin: 6px 0 4px; font-size: 19px; font-weight: 600; line-height: 1.45; }
+.work--lead .work__title { font-size: clamp(24px, 2.4vw, 32px); margin-top: 8px; }
+.work__desc { margin: 10px 0 12px; max-width: 40em; color: var(--text-soft); font-size: 15px; }
+.work__credit { margin: 0; font-size: 14px; color: var(--muted); }
+
+.more { margin-top: 88px; }
+.more__head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 22px; }
+.more__head h3 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .06em; }
+.more__hint { font: 11px var(--font-mono); color: var(--muted); letter-spacing: .16em; text-transform: uppercase; }
+.more-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; }
+.dev__thumb { aspect-ratio: 16 / 9; overflow: hidden; background: var(--bg-raised); }
+.dev__thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1) brightness(.55) contrast(1.2);
+  transition: filter .6s ease;
+}
+@media (hover: hover) {
+  .dev:hover .dev__thumb img, .dev:focus-visible .dev__thumb img { filter: none; }
+}
+@media (hover: none) {
+  .dev__thumb img { filter: none; }
+  .more__hint { display: none; }
+}
+.dev__title { margin: 10px 0 0; font-size: 14px; font-weight: 600; line-height: 1.5; }
+.dev__meta { font: 11px var(--font-mono); color: var(--muted); }
+
+/* ── 數字 ─────────────────────────────── */
+.stats { border-block: 1px solid var(--line); background: var(--bg-sunken); }
+.stats__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stat { padding: 52px 28px; border-left: 1px solid var(--line); }
+.stat:first-child { border-left: 0; padding-left: 0; }
+.stat b {
+  display: block; font-family: var(--font-latin); font-stretch: 125%;
+  font-size: clamp(46px, 5.2vw, 76px); font-weight: 800; line-height: 1; letter-spacing: -.01em;
+}
+.stat b small { margin-left: 6px; font-family: var(--font-cjk); font-size: .3em; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.stat__label { display: block; margin-top: 20px; font-weight: 600; }
+.stat__note { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
+
+/* ── 服務 ─────────────────────────────── */
+.svc { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.svc__row {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 1.35fr) 36px; align-items: center; gap: 24px;
+  padding: 36px 8px; border-bottom: 1px solid var(--line);
+  transition: background .3s, padding .3s;
+}
+.svc__row:hover { background: var(--bg-raised); padding-left: 22px; }
+.svc__no { font: 13px var(--font-mono); color: var(--muted); }
+.svc__name { margin: 0; font-size: clamp(22px, 2.5vw, 34px); font-weight: 700; letter-spacing: .04em; line-height: 1.3; }
+.svc__name .en {
+  display: block; margin-top: 8px;
+  font-family: var(--font-latin); font-stretch: 125%;
+  font-size: 11px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted);
+}
+.svc__desc { margin: 0; color: var(--text-soft); }
+.svc__for { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.svc__arrow { font-size: 22px; color: var(--muted); transition: transform .3s, color .3s; }
+.svc__row:hover .svc__arrow { transform: translateX(6px); color: var(--accent); }
+
+/* ── 製作流程（底片條） ─────────────────────────────── */
+.strip-wrap { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.strip {
+  position: relative; list-style: none; margin: 0; padding: 34px 0;
+  min-width: 1100px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  background: var(--bg-sunken); border-block: 1px solid var(--line);
+}
+.strip::before, .strip::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 8px;
+  background: repeating-linear-gradient(90deg, transparent 0 12px, rgb(241 237 230 / .13) 12px 24px);
+}
+.strip::before { top: 10px; }
+.strip::after { bottom: 10px; }
+.step { padding: 22px 24px 18px; border-left: 1px solid var(--line); scroll-snap-align: start; }
+.step:first-child { border-left: 0; }
+.step__no { font: 12px var(--font-mono); color: var(--muted); letter-spacing: .1em; }
+.step h3 { margin: 12px 0 2px; font-size: 18px; font-weight: 700; }
+.step__en { font-family: var(--font-latin); font-stretch: 125%; font-size: 10px; font-weight: 600; letter-spacing: .26em; color: var(--muted); }
+.step p { margin: 12px 0 0; font-size: 14px; line-height: 1.8; color: var(--muted); }
+.step__key {
+  display: inline-block; margin-top: 14px; padding: 2px 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  border: 1px solid var(--accent); color: var(--accent);
+}
+.process-note { margin: 28px 0 0; color: var(--text-soft); }
+
+/* ── 獲獎 ─────────────────────────────── */
+.awards { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.aw {
+  display: grid; grid-template-columns: 72px minmax(0, 2fr) 110px minmax(0, 1.3fr); align-items: baseline; gap: 24px;
+  padding: 22px 0; border-bottom: 1px solid var(--line);
+}
+.aw time { font: 14px var(--font-mono); color: var(--muted); }
+.aw__event { font-weight: 600; }
+.aw__result { font-weight: 700; letter-spacing: .06em; }
+.aw__work { color: var(--muted); }
+
+/* ── 創辦人 ─────────────────────────────── */
+.team { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.person {
+  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 28px;
+  padding: 28px; background: var(--bg-raised); border: 1px solid var(--line);
+}
+.person__ph { position: relative; margin: 0; aspect-ratio: 4 / 5; overflow: hidden; }
+.person__ph img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.25); }
+.person__ph figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 8px;
+  font: 11px/1.4 var(--font-mono); color: var(--accent); background: rgb(14 14 16 / .8);
+}
+.person__role { font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+.person h3 { margin: 4px 0 0; font-size: 28px; font-weight: 700; letter-spacing: .08em; }
+.person__en {
+  font-family: var(--font-latin); font-stretch: 112%; font-size: 12px; font-weight: 600;
+  letter-spacing: .2em; color: var(--muted);
+}
+.person p { margin: 14px 0 0; font-size: 15px; color: var(--text-soft); }
+.tags { list-style: none; margin: 16px 0 18px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tags li { padding: 3px 10px; font-size: 12px; color: var(--muted); border: 1px solid var(--line); }
+.link-more { font-size: 15px; font-weight: 600; transition: color .2s; }
+.link-more:hover { color: var(--accent); }
+
+/* ── 合作 ─────────────────────────────── */
+.partners { padding: 64px 0; border-top: 1px solid var(--line); }
+.partners__label { margin: 0 0 22px; font-size: 14px; color: var(--muted); letter-spacing: .1em; }
+.partners ul {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 14px 44px;
+  font-family: var(--font-latin); font-size: clamp(18px, 2vw, 24px); font-weight: 600; color: #8f8b84;
+}
+
+/* ── CTA ─────────────────────────────── */
+.cta {
+  position: relative; padding: clamp(96px, 12vw, 168px) 0;
+  background: radial-gradient(65% 90% at 100% 100%, rgb(255 77 61 / .2), transparent 62%), var(--bg-raised);
+  border-top: 1px solid var(--line);
+}
+.cta h2 { margin: 0 0 22px; font-size: clamp(38px, 6.2vw, 88px); font-weight: 700; line-height: 1.15; letter-spacing: .02em; }
+.cta p { margin: 0 0 40px; max-width: 32em; font-size: 18px; color: var(--text-soft); }
+.cta__actions { display: flex; flex-wrap: wrap; gap: 14px; }
+.cta__mail { margin-top: 28px !important; font: 15px var(--font-mono) !important; color: var(--muted) !important; }
+
+/* ── 頁尾 ─────────────────────────────── */
+.ft { padding: 72px 0 96px; background: var(--bg-sunken); font-size: 14px; color: var(--muted); }
+.ft__grid { display: grid; grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr)); gap: 36px; }
+.ft__brand .brand { margin-bottom: 16px; }
+.ft__brand p { margin: 0; max-width: 22em; }
+.ft h4 {
+  margin: 0 0 14px; color: var(--text);
+  font-family: var(--font-latin); font-stretch: 125%; font-size: 11px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase;
+}
+.ft ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ft a { transition: color .2s; }
+.ft a:hover { color: var(--text); }
+.ft__legal {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+  margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13px;
+}
+
+/* ── 響應式 ─────────────────────────────── */
+@media (max-width: 1100px) {
+  .hero__slate { position: static; width: auto; max-width: 360px; margin-top: 40px; }
+}
+@media (max-width: 1024px) {
+  .nav, .lang { display: none; }
+  .menu { display: block; }
+  .hd__right { margin-left: auto; gap: 10px; }
+  .works-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .work--lead { grid-column: 1 / -1; grid-row: auto; }
+  .more-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 28px; }
+  .stats__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stat:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .svc__row { grid-template-columns: 44px minmax(0, 1fr) 28px; row-gap: 12px; }
+  .svc__desc { grid-column: 2; grid-row: 2; }
+  .svc__arrow { grid-column: 3; grid-row: 1; }
+  .team { grid-template-columns: 1fr; }
+  .ft__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .brand__en { display: none; }
+  .hero__reel { grid-template-columns: repeat(2, 1fr); }
+  .hero__content { padding-top: 96px; }
+  .eyebrow { font-size: 11px; letter-spacing: .16em; }
+  .sec-head { grid-template-columns: 1fr auto; }
+  .sec-no { display: none; }
+  .works-grid { grid-template-columns: 1fr; row-gap: 36px; }
+  .more-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat, .stat:first-child, .stat:nth-child(3) { padding: 32px 0; border-left: 0; }
+  .stat:nth-child(even) { padding-left: 16px; border-left: 1px solid var(--line); }
+  .aw { grid-template-columns: 52px minmax(0, 1fr); row-gap: 2px; }
+  .aw__result, .aw__work { grid-column: 2; }
+  .person { grid-template-columns: 1fr; padding: 20px; }
+  .person__ph { max-width: 200px; }
+  .ft__grid { grid-template-columns: 1fr; }
+  .cta__actions .btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reel-col, .rec { animation: none; }
+  .reel-toggle { display: none; }
+  .work__thumb img, .dev__thumb img, .svc__row, .svc__arrow { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="draft-flag">首頁視覺草稿 v0.1・內容待確認</div>
+
+<header class="hd">
+  <a class="brand" href="#top" aria-label="幻五娛樂 HALLUCINATION FIVE 首頁">
+    <span class="brand__zh">幻五娛樂</span>
+    <span class="brand__en">HALLUCINATION FIVE</span>
+  </a>
+  <nav class="nav" aria-label="主選單">
+    <a href="#works">作品<span class="en">WORKS</span></a>
+    <a href="#services">服務<span class="en">SERVICES</span></a>
+    <a href="#team">關於<span class="en">ABOUT</span></a>
+    <a href="#contact">聯絡<span class="en">CONTACT</span></a>
+  </nav>
+  <div class="hd__right">
+    <span class="lang" title="日文版在第二階段上線"><b>中</b>｜<a href="#">日</a></span>
+    <a class="btn btn--accent btn--sm" href="#contact">專案洽詢</a>
+    <details class="menu">
+      <summary aria-label="開啟選單">選單</summary>
+      <nav class="menu__panel" aria-label="行動版選單">
+        <a href="#works">作品</a>
+        <a href="#services">服務</a>
+        <a href="#team">關於</a>
+        <a href="#contact">聯絡</a>
+        <a href="#">日本語</a>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__reel" aria-hidden="true">
+      <div class="reel-col">
+        <img src="img/maai.jpg" alt=""><img src="img/karakuri.jpg" alt=""><img src="https://i.ytimg.com/vi/Jp69un7FrRI/hqdefault.jpg" alt=""><img src="img/moyi.jpg" alt="">
+        <img src="img/maai.jpg" alt=""><img src="img/karakuri.jpg" alt=""><img src="https://i.ytimg.com/vi/Jp69un7FrRI/hqdefault.jpg" alt=""><img src="img/moyi.jpg" alt="">
+      </div>
+      <div class="reel-col">
+        <img src="img/memory.jpg" alt=""><img src="https://i.ytimg.com/vi/GX5d8Y7--Qc/hqdefault.jpg" alt=""><img src="img/zongji.jpg" alt=""><img src="img/learning.jpg" alt="">
+        <img src="img/memory.jpg" alt=""><img src="https://i.ytimg.com/vi/GX5d8Y7--Qc/hqdefault.jpg" alt=""><img src="img/zongji.jpg" alt=""><img src="img/learning.jpg" alt="">
+      </div>
+      <div class="reel-col">
+        <img src="img/ruguo.jpg" alt=""><img src="https://i.ytimg.com/vi/Qp8r3JxeB30/hqdefault.jpg" alt=""><img src="https://i.ytimg.com/vi/L5-RwoCy6jk/hqdefault.jpg" alt=""><img src="img/maai.jpg" alt="">
+        <img src="img/ruguo.jpg" alt=""><img src="https://i.ytimg.com/vi/Qp8r3JxeB30/hqdefault.jpg" alt=""><img src="https://i.ytimg.com/vi/L5-RwoCy6jk/hqdefault.jpg" alt=""><img src="img/maai.jpg" alt="">
+      </div>
+      <div class="reel-col">
+        <img src="https://i.ytimg.com/vi/xqZpLKIHZrs/hqdefault.jpg" alt=""><img src="img/learning.jpg" alt=""><img src="https://i.ytimg.com/vi/bVre_gRG-m0/hqdefault.jpg" alt=""><img src="img/zongji.jpg" alt="">
+        <img src="https://i.ytimg.com/vi/xqZpLKIHZrs/hqdefault.jpg" alt=""><img src="img/learning.jpg" alt=""><img src="https://i.ytimg.com/vi/bVre_gRG-m0/hqdefault.jpg" alt=""><img src="img/zongji.jpg" alt="">
+      </div>
+    </div>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__content container">
+      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>AI Film &amp; Video Production · Taipei</p>
+      <h1 class="hero__title" id="hero-title">畫面交給 AI，<br>故事留給<em>人</em>。</h1>
+      <p class="hero__lead">幻五娛樂由幻詠工作室與 5Y工作室合夥成立。從品牌廣告、音樂 MV 到三十集的平台短劇，我們先把故事寫好，再讓 AI 把畫面做出來。</p>
+      <div class="hero__cta">
+        <a class="btn btn--accent" href="#contact">專案洽詢</a>
+        <a class="btn btn--ghost" href="#works">觀看作品 ↓</a>
+      </div>
+      <div class="hero__slate">
+        <div class="slate__row">
+          <div>
+            <div class="slate__label">SHOWREEL 2026</div>
+            <div class="slate__tc">00:00:45</div>
+          </div>
+          <span class="slate__play" aria-hidden="true">▶</span>
+        </div>
+        <span class="todo-note">待補：30–60 秒精華剪輯。上線前背景先用作品劇照</span>
+        <button class="reel-toggle" type="button" aria-pressed="false">暫停背景動態</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="works" aria-labelledby="works-title">
+    <div class="container">
+      <header class="sec-head">
+        <span class="sec-no">01</span>
+        <h2 id="works-title"><span class="en">Selected Works</span>精選作品</h2>
+        <a class="sec-all" href="#">全部作品 →</a>
+      </header>
+
+      <div class="works-grid">
+        <a class="work work--lead" href="#">
+          <div class="work__thumb">
+            <img src="img/maai.jpg" alt="櫻花隧道下三名學生騎單車遠去的逆光背影，畫面中央是毛筆字「間合」" width="1280" height="720">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2026・短片・08:29<span class="work__badge">大賽第二名</span></div>
+          <h3 class="work__title">間合 Maai</h3>
+          <p class="work__desc">劍道裡的「間合」，是衡量距離與出手時機的分寸。一部關於青春、友情與「不作為」的八分半短片，在 GMI Cloud × Wan × DV ASIA 的現場限時賽拿下第二名。</p>
+          <p class="work__credit">隊長・主編劇 黃宏瑞｜動態設計 林仲彥｜團隊 Evelyn Lin、cutcat</p>
+        </a>
+
+        <a class="work" href="#">
+          <div class="work__thumb">
+            <img src="img/moyi.jpg" alt="《墨儀問靈：八方借命》第一集劇照" width="1280" height="720">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2026・短劇・全 30 集</div>
+          <h3 class="work__title">墨儀問靈：八方借命</h3>
+          <p class="work__credit">導演 林仲彥｜金魚短劇 KIMHIT 委製</p>
+        </a>
+
+        <a class="work" href="#">
+          <div class="work__thumb">
+            <img src="img/memory.jpg" alt="《メモリー・ショップの黄昏》MV 劇照" width="1280" height="720">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2025・MV・02:44<span class="work__badge">MV 專業賽第一名</span></div>
+          <h3 class="work__title">メモリー・ショップの黄昏</h3>
+          <p class="work__credit">導演 黃宏瑞｜日文原創歌詞</p>
+        </a>
+
+        <a class="work" href="#">
+          <div class="work__thumb">
+            <img src="img/zongji.jpg" alt="《粽乩 EP1：豬母夜哭》劇照" width="1280" height="720">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2026・短劇・03:55<span class="work__badge">影展入圍</span></div>
+          <h3 class="work__title">粽乩 EP1：豬母夜哭</h3>
+          <p class="work__credit">導演 林仲彥｜AI London Film Festival 入圍</p>
+        </a>
+
+        <a class="work" href="#">
+          <div class="work__thumb">
+            <img src="img/learning.jpg" alt="《與AI共學 EP01：期末考試》動畫劇照" width="1280" height="720">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2025・動畫・03:40<span class="work__badge">三等獎</span></div>
+          <h3 class="work__title">與AI共學 EP01：期末考試</h3>
+          <p class="work__credit">導演 黃宏瑞｜愛奇藝 AI 短片創作大賽</p>
+        </a>
+
+        <a class="work" href="#">
+          <div class="work__thumb">
+            <img src="https://i.ytimg.com/vi/GX5d8Y7--Qc/hqdefault.jpg" alt="《島嶼藝視界－台灣當代美術凡爾賽特展》宣傳片畫面" width="480" height="360">
+            <span class="work__play" aria-hidden="true">▶</span>
+          </div>
+          <div class="work__meta">2025・廣告</div>
+          <h3 class="work__title">島嶼藝視界－台灣當代美術凡爾賽特展</h3>
+          <p class="work__credit">導演 林仲彥｜展覽宣傳片</p>
+        </a>
+      </div>
+
+      <div class="more">
+        <div class="more__head">
+          <h3>更多作品</h3>
+          <span class="more__hint">Hover to develop・滑過顯影</span>
+        </div>
+        <div class="more-grid">
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="img/ruguo.jpg" alt="《如果我們沒有分開》主題曲 MV 畫面" loading="lazy"></div>
+            <p class="dev__title">如果我們沒有分開・主題曲 MV</p>
+            <span class="dev__meta">2026・MV・04:12</span>
+          </a>
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="img/karakuri.jpg" alt="《絡繰月詠》MV 中的賽博藝妓" loading="lazy"></div>
+            <p class="dev__title">絡繰月詠</p>
+            <span class="dev__meta">2026・MV・02:31</span>
+          </a>
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="https://i.ytimg.com/vi/Jp69un7FrRI/hqdefault.jpg" alt="《歡迎來到百日生存率47%的星球》畫面" loading="lazy"></div>
+            <p class="dev__title">歡迎來到百日生存率47%的星球</p>
+            <span class="dev__meta">2026・短劇</span>
+          </a>
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="https://i.ytimg.com/vi/Qp8r3JxeB30/hqdefault.jpg" alt="《粽乩：天迴》畫面" loading="lazy"></div>
+            <p class="dev__title">粽乩：天迴</p>
+            <span class="dev__meta">2026・短劇</span>
+          </a>
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="https://i.ytimg.com/vi/L5-RwoCy6jk/hqdefault.jpg" alt="Comfilife 吊扇廣告畫面" loading="lazy"></div>
+            <p class="dev__title">Comfilife 吊扇</p>
+            <span class="dev__meta">2025・廣告</span>
+          </a>
+          <a class="dev" href="#">
+            <div class="dev__thumb"><img src="https://i.ytimg.com/vi/bVre_gRG-m0/hqdefault.jpg" alt="超美型寵物工作坊廣告畫面" loading="lazy"></div>
+            <p class="dev__title">超美型寵物工作坊</p>
+            <span class="dev__meta">2025・廣告</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="數字">
+    <div class="container">
+      <div class="stats__grid">
+        <div class="stat">
+          <b>60<small>集</small></b>
+          <span class="stat__label">平台短劇委製</span>
+          <span class="stat__note">金魚短劇兩部，各 30 集</span>
+        </div>
+        <div class="stat">
+          <b>4<small>座</small></b>
+          <span class="stat__label">AI 影像競賽獎項</span>
+          <span class="stat__note">另有 3 項入圍與入選</span>
+        </div>
+        <div class="stat">
+          <b>13<small>年</small></b>
+          <span class="stat__label">3D 與數位影像資歷</span>
+          <span class="stat__note">3D 動態預演驅動 AI 生成</span>
+        </div>
+        <div class="stat">
+          <b>中・日</b>
+          <span class="stat__label">雙語製作與提案</span>
+          <span class="stat__note">日文原創歌詞 MV 獲第一名</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="services" aria-labelledby="services-title">
+    <div class="container">
+      <header class="sec-head">
+        <span class="sec-no">02</span>
+        <h2 id="services-title"><span class="en">Services</span>我們做的事</h2>
+        <a class="sec-all" href="#">服務總覽 →</a>
+      </header>
+      <ol class="svc">
+        <li>
+          <a class="svc__row" href="#">
+            <span class="svc__no">01</span>
+            <h3 class="svc__name">商業影片製作<span class="en">Commercial</span></h3>
+            <p class="svc__desc">廣告・品牌形象片・產品 PV・展覽與活動宣傳・MV<span class="svc__for">適合：品牌主、廣告代理商、展覽與活動主辦</span></p>
+            <span class="svc__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a class="svc__row" href="#">
+            <span class="svc__no">02</span>
+            <h3 class="svc__name">短劇與影集<span class="en">Series &amp; Short Drama</span></h3>
+            <p class="svc__desc">平台短劇委製・影集・自有 IP 共同開發・主題曲 MV<span class="svc__for">適合：短劇平台、製片公司、IP 方</span></p>
+            <span class="svc__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a class="svc__row" href="#">
+            <span class="svc__no">03</span>
+            <h3 class="svc__name">課程與企業內訓<span class="en">Training</span></h3>
+            <p class="svc__desc">AI 商業廣告實作・AI 影片製作入門・企業內訓與講座<span class="svc__for">適合：企業人資、學校、公協會</span></p>
+            <span class="svc__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a class="svc__row" href="#">
+            <span class="svc__no">04</span>
+            <h3 class="svc__name">AI 導入顧問<span class="en">Consulting</span></h3>
+            <p class="svc__desc">生成式 AI 導入行銷流程・自動化內容產線（n8n）・知識內容轉譯<span class="svc__for">適合：想把 AI 用進日常工作的企業</span></p>
+            <span class="svc__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="process" aria-labelledby="process-title" style="padding-top: 0;">
+    <div class="container">
+      <header class="sec-head">
+        <span class="sec-no">03</span>
+        <h2 id="process-title"><span class="en">How We Work</span>製作流程</h2>
+      </header>
+    </div>
+    <div class="container">
+      <div class="strip-wrap">
+        <ol class="strip">
+          <li class="step">
+            <span class="step__no">FRAME 01</span>
+            <h3>需求訪談</h3><span class="step__en">BRIEF</span>
+            <p>確認用途、受眾、片長、預算與交付規格。</p>
+          </li>
+          <li class="step">
+            <span class="step__no">FRAME 02</span>
+            <h3>腳本與分鏡</h3><span class="step__en">SCRIPT</span>
+            <p>先把故事寫好，再決定哪些畫面交給 AI。</p>
+          </li>
+          <li class="step">
+            <span class="step__no">FRAME 03</span>
+            <h3>3D 動態預演</h3><span class="step__en">PREVIS</span>
+            <p>用輕量 3D 搭出鏡頭運動與角色走位，當成生成的動態參考。</p>
+            <span class="step__key">幻五的方法</span>
+          </li>
+          <li class="step">
+            <span class="step__no">FRAME 04</span>
+            <h3>角色與場景設定</h3><span class="step__en">DESIGN</span>
+            <p>先做角色設定表與場景美術，鎖住整部片的一致性。</p>
+            <span class="step__key">幻五的方法</span>
+          </li>
+          <li class="step">
+            <span class="step__no">FRAME 05</span>
+            <h3>生成與篩選</h3><span class="step__en">GENERATE</span>
+            <p>每一格畫面都由人挑選、重生成與調整。</p>
+          </li>
+          <li class="step">
+            <span class="step__no">FRAME 06</span>
+            <h3>剪輯・配樂・交付</h3><span class="step__en">FINISH</span>
+            <p>剪輯、配樂、字幕與調色，依平台規格交付。</p>
+          </li>
+        </ol>
+      </div>
+      <p class="process-note">AI 負責生成，導演負責判斷。工具會換代，判斷力不會。</p>
+    </div>
+  </section>
+
+  <section class="section" id="awards" aria-labelledby="awards-title" style="padding-top: 0;">
+    <div class="container">
+      <header class="sec-head">
+        <span class="sec-no">04</span>
+        <h2 id="awards-title"><span class="en">Awards</span>獲獎紀錄</h2>
+      </header>
+      <ul class="awards">
+        <li class="aw"><time>2026</time><span class="aw__event">GMI Cloud × Wan × DV ASIA AI 影視職人創作大賽</span><span class="aw__result">第二名</span><span class="aw__work">《間合》</span></li>
+        <li class="aw"><time>2026</time><span class="aw__event">AI London Film Festival</span><span class="aw__result">入圍</span><span class="aw__work">《粽乩：豬母夜哭》</span></li>
+        <li class="aw"><time>2025</time><span class="aw__event">Bouquet wiz AI MV 專業賽</span><span class="aw__result">第一名</span><span class="aw__work">《メモリー・ショップの黄昏》</span></li>
+        <li class="aw"><time>2025</time><span class="aw__event">愛奇藝「與AI共生」AI 短片創作大賽</span><span class="aw__result">三等獎</span><span class="aw__work">《與AI共學 EP01：期末考試》</span></li>
+        <li class="aw"><time>2025</time><span class="aw__event">臺北生成藝術節 貼圖組</span><span class="aw__result">第三名</span><span class="aw__work">《跑著玩臺北》</span></li>
+        <li class="aw"><time>2025</time><span class="aw__event">Artiver AI Art Awards</span><span class="aw__result">決賽入圍</span><span class="aw__work">《五元有緣》</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="team" aria-labelledby="team-title" style="padding-top: 0;">
+    <div class="container">
+      <header class="sec-head">
+        <span class="sec-no">05</span>
+        <h2 id="team-title"><span class="en">Founders</span>創辦人</h2>
+        <a class="sec-all" href="#">關於幻五 →</a>
+      </header>
+      <div class="team">
+        <article class="person">
+          <figure class="person__ph">
+            <img src="img/huang.jpg" alt="黃宏瑞的像素風格自畫像" width="800" height="1000">
+            <figcaption>頭像暫代，待換真人照片</figcaption>
+          </figure>
+          <div>
+            <span class="person__role">共同創辦人・編劇／導演</span>
+            <h3>黃宏瑞</h3>
+            <span class="person__en">HUANG HUNG-JUI</span>
+            <p>台大日文系、東京大學教育學研究科碩士。從提示詞研究走進影像，以角色設定先行的動畫與日文 MV 拿下 Bouquet wiz 第一名；同時是企業 AI 導入顧問與講師。</p>
+            <ul class="tags"><li>編劇</li><li>日文 MV</li><li>角色一致性</li><li>AI 導入顧問</li><li>中日雙語</li></ul>
+            <a class="link-more" href="#">認識宏瑞 →</a>
+          </div>
+        </article>
+        <article class="person">
+          <figure class="person__ph">
+            <img src="img/lin.jpg" alt="林仲彥的頻道頭像：Q 版鎧甲武士與一隻黃狗" width="800" height="1000">
+            <figcaption>頭像暫代，待換真人照片</figcaption>
+          </figure>
+          <div>
+            <span class="person__role">共同創辦人・導演／3D 動態</span>
+            <h3>林仲彥</h3>
+            <span class="person__en">LIN CHUNG-YEN</span>
+            <p>十三年 3D 與數位影像資歷，網路上以「粽子」「漫步深淵」為名。以 3D 動態預演驅動 AI 生成，主導金魚短劇兩部三十集的委製與多支商業廣告。</p>
+            <ul class="tags"><li>導演</li><li>3D 動態預演</li><li>平台短劇</li><li>商業廣告</li><li>AI 廣告課程</li></ul>
+            <a class="link-more" href="#">認識仲彥 →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="partners" aria-labelledby="partners-title">
+    <div class="container">
+      <p class="partners__label" id="partners-title">合作過的品牌與平台</p>
+      <ul class="todo">
+        <li>金魚短劇 KIMHIT</li>
+        <li>Comfilife</li>
+        <li>超美型寵物工作坊</li>
+        <li>島嶼藝視界</li>
+        <li>古寶無患子</li>
+      </ul>
+      <p class="todo-note" style="margin-top: 18px;">草稿：名單要逐一取得客戶同意才會上線</p>
+    </div>
+  </section>
+
+  <section class="cta" id="contact" aria-labelledby="cta-title">
+    <div class="container">
+      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>Contact</p>
+      <h2 id="cta-title">有一個想拍的故事？</h2>
+      <p>告訴我們用途、片長與時程，我們會在兩個工作天內回覆。</p>
+      <div class="cta__actions">
+        <a class="btn btn--accent btn--lg" href="#">專案洽詢</a>
+        <a class="btn btn--ghost btn--lg" href="#">企業內訓洽詢</a>
+      </div>
+      <p class="cta__mail">studio@hallucination28.com（暫定）</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ft">
+  <div class="container">
+    <div class="ft__grid">
+      <div class="ft__brand">
+        <a class="brand" href="#top"><span class="brand__zh">幻五娛樂</span><span class="brand__en">HALLUCINATION FIVE</span></a>
+        <p>畫面交給 AI，故事留給人。<br>AI 廣告、MV 與短劇製作，以及 AI 影片課程與導入顧問。</p>
+      </div>
+      <div>
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">商業影片製作</a></li>
+          <li><a href="#">短劇與影集</a></li>
+          <li><a href="#">課程與企業內訓</a></li>
+          <li><a href="#">AI 導入顧問</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">關於幻五</a></li>
+          <li><a href="#">黃宏瑞</a></li>
+          <li><a href="#">林仲彥</a></li>
+          <li><a href="#">專案洽詢</a></li>
+          <li><a href="#">隱私權政策</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Related</h4>
+        <ul>
+          <li><a href="https://hallucination28.com/">台灣AI影視創作者圖鑑 ↗</a></li>
+          <li><a href="#">日本語</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ft__legal">
+      <span>幻五娛樂科技股份有限公司（更名登記中，原幻詠資訊有限公司）・統一編號 <span class="todo-note">待補</span></span>
+      <span class="latin">© 2026 HALLUCINATION FIVE</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const hero = document.querySelector('.hero');
+  const toggle = document.querySelector('.reel-toggle');
+  toggle.addEventListener('click', () => {
+    const paused = hero.classList.toggle('is-paused');
+    toggle.setAttribute('aria-pressed', String(paused));
+    toggle.textContent = paused ? '播放背景動態' : '暫停背景動態';
+  });
+</script>
+</body>
+</html>

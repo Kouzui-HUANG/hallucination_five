@@ -1,0 +1,47 @@
+---
+/** /privacy/ — 隱私權政策（P1 不裝分析工具，所以不需要 cookie 同意視窗；設計文件 §11 #9） */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import { SITE, legalNameLine } from '../data/site';
+
+const updated = '2026-10-28';
+---
+
+<BaseLayout
+  title="隱私權政策"
+  description="幻五娛樂官網如何處理你寄來的洽詢資料、影片嵌入與字型載入。本站不使用分析工具與追蹤 cookie。"
+>
+  <PageHead en="Privacy" title="隱私權政策" crumbs={[{ label: '隱私權政策' }]} />
+
+  <section class="section">
+    <div class="container">
+      <div class="prose">
+        <p>本政策說明{legalNameLine()}（以下稱「幻五娛樂」）的官網如何處理你的資料。最後更新：{updated.replace(/-/g, '.')}。</p>
+
+        <h2>我們蒐集的資料</h2>
+        <p>
+          只有你主動寄給我們的洽詢內容：姓名、公司、聯絡方式與專案說明。這些資料只用來回覆洽詢、報價與執行專案，不會提供給第三方，也不會用於行銷。
+        </p>
+
+        <h2>分析工具與 cookie</h2>
+        <p>本站目前不使用網站分析工具，也不設定追蹤用的 cookie。</p>
+
+        <h2>影片嵌入</h2>
+        <p>
+          作品頁的影片以 youtube-nocookie.com 嵌入，而且要你按下播放鍵才會載入。載入之後，YouTube 會依它自己的隱私權政策處理資料。
+        </p>
+
+        <h2>字型</h2>
+        <p>本站的英文字型由 Google Fonts 提供；載入時，Google 會取得你的 IP 位址等連線資訊。</p>
+
+        <h2>外部連結</h2>
+        <p>本站連到的外部網站（YouTube、社群平台、課程平台等）各有自己的隱私權政策，不在本政策範圍內。</p>
+
+        <h2>聯絡我們</h2>
+        <p>
+          想查詢、更正或刪除你寄給我們的資料，請來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,34 @@
+---
+/** 內頁頁首：麵包屑＋英文眉標＋h1＋導言（麵包屑要與 BaseLayout 的 BreadcrumbList 一致） */
+import { routes } from '../data/site';
+
+interface Props {
+  en: string;
+  title: string;
+  lead?: string;
+  crumbs?: { label: string; href?: string }[];
+}
+
+const { en, title, lead, crumbs = [] } = Astro.props;
+---
+
+<header class="page-head">
+  <div class="container">
+    {
+      crumbs.length > 0 && (
+        <nav class="crumbs" aria-label="麵包屑">
+          <a href={routes.home()}>首頁</a>
+          {crumbs.map((c) => (
+            <>
+              <span aria-hidden="true">／</span>
+              {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            </>
+          ))}
+        </nav>
+      )
+    }
+    <h1 class="page-head__title"><span class="page-head__en">{en}</span>{title}</h1>
+    {lead && <p class="page-head__lead">{lead}</p>}
+    <slot />
+  </div>
+</header>

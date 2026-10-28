@@ -1,0 +1,253 @@
+---
+/**
+ * /works/<slug>/ — 作品頁（設計文件 §3-2）
+ * 影片 facade → 標題 → 劇情簡介＋製作名單 → 作品資訊 → 獲獎 → 同類別作品 → CTA
+ * schema：VideoObject（director 以 @id 指回 Person，productionCompany 指回 Organization）
+ */
+import { getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import VideoFacade from '../../components/VideoFacade.astro';
+import DevCard from '../../components/DevCard.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import {
+  getSiteData,
+  directorsOf,
+  fmtDate,
+  fmtDuration,
+  isoDuration,
+  parseVideoUrl,
+  type Work,
+} from '../../data/queries';
+import { categoryLabel } from '../../data/categories';
+import { routes, absRoutes, absAsset } from '../../data/site';
+
+export async function getStaticPaths() {
+  const { works } = await getSiteData();
+  return works.map((work) => ({ params: { slug: work.data.slug }, props: { work } }));
+}
+
+const { work } = Astro.props as { work: Work };
+const { works, teamById } = await getSiteData();
+const { title, slug, category, year, releasedAt, durationSec, episodes, videoUrl, thumb, synopsis, credits, client, platform, tools, awards } =
+  work.data;
+
+const directors = directorsOf(work, teamById);
+const duration = fmtDuration(durationSec);
+const label = categoryLabel(category);
+const video = videoUrl ? parseVideoUrl(videoUrl) : null;
+const pageUrl = absRoutes.work(slug);
+
+/* 作品類別 → 對應的服務頁（CTA 帶入服務類型） */
+const service = category === 'commercial' || category === 'mv' ? 'commercial' : 'series';
+
+const related = works.filter((w) => w.id !== work.id && w.data.category === category).slice(0, 4);
+const relatedFill =
+  related.length < 4 ? works.filter((w) => w.id !== work.id && !related.includes(w)).slice(0, 4 - related.length) : [];
+
+const og = await getImage({ src: thumb, width: 1200, format: 'jpg', quality: 80 });
+const thumbnailUrl = absAsset(og.src);
+
+const creditRows = credits.map((c) => {
+  const member = c.team ? teamById.get(c.team) : undefined;
+  return {
+    role: c.role,
+    name: member ? member.data.name : (c.name ?? ''),
+    href: member ? routes.team(member.id) : c.url,
+    external: !member && !!c.url,
+  };
+});
+
+const facts = [
+  { label: '類別', value: label },
+  { label: '發表', value: fmtDate(releasedAt), mono: true },
+  ...(episodes ? [{ label: '集數', value: `全 ${episodes} 集` }] : []),
+  ...(duration ? [{ label: episodes ? '本集片長' : '片長', value: duration, mono: true }] : []),
+  ...(client ? [{ label: '客戶', value: client }] : []),
+  ...(platform ? [{ label: '平台', value: platform }] : []),
+  ...(tools.length ? [{ label: '主要工具', value: tools.join('・') }] : []),
+];
+
+const isoDur = isoDuration(durationSec);
+const schemaEmbedUrl = video?.embedUrl ? video.embedUrl.split('?')[0] : null;
+const videoSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  '@id': `${pageUrl}#video`,
+  name: title,
+  description: synopsis,
+  thumbnailUrl,
+  uploadDate: `${releasedAt}T00:00:00+08:00`,
+  ...(isoDur ? { duration: isoDur } : {}),
+  ...(schemaEmbedUrl ? { embedUrl: schemaEmbedUrl } : {}),
+  ...(video ? { sameAs: video.watchUrl } : {}),
+  url: pageUrl,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
+  genre: label,
+  inLanguage: 'zh-Hant-TW',
+  ...(tools.length ? { keywords: tools.join(', ') } : {}),
+  ...(awards.length ? { award: awards.map((a) => `${a.year} ${a.title} ${a.result}`) } : {}),
+  director: directors.map((m) => ({ '@type': 'Person', '@id': absRoutes.personId(m.id), name: m.data.name })),
+  productionCompany: { '@id': absRoutes.organizationId() },
+};
+---
+
+<BaseLayout
+  title={title}
+  seoTitle={`${title}｜${label}`}
+  description={synopsis.length > 150 ? `${synopsis.slice(0, 148)}…` : synopsis}
+  ogImage={og.src}
+  ogType="video.other"
+  schemas={[videoSchema]}
+  breadcrumbs={[
+    { name: '作品', item: absRoutes.works() },
+    { name: title, item: pageUrl },
+  ]}
+>
+  <PageHead en={`${label} · ${year}`} title={title} crumbs={[{ label: '作品', href: routes.works() }, { label: title }]} />
+
+  <section class="section work-page">
+    <div class="container">
+      <VideoFacade work={work} />
+
+      <div class="work-body">
+        <div>
+          <p class="synopsis">{synopsis}</p>
+          {
+            awards.length > 0 && (
+              <ul class="work-awards">
+                {awards.map((a) => (
+                  <li>
+                    <span class="badge">{a.result}</span>
+                    <span>
+                      {a.year} {a.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+          {
+            creditRows.length > 0 && (
+              <div class="credits">
+                <h2 class="credits__title">製作名單</h2>
+                <dl class="credits__list">
+                  {creditRows.map((c) => (
+                    <div>
+                      <dt>{c.role}</dt>
+                      <dd>
+                        {c.href ? (
+                          <a href={c.href} {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                            {c.name}
+                            {c.external && ' ↗'}
+                          </a>
+                        ) : (
+                          c.name
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )
+          }
+        </div>
+
+        <dl class="data-grid facts">
+          {
+            facts.map((f) => (
+              <div class="data-grid__cell">
+                <dt class="data-grid__label">{f.label}</dt>
+                <dd class:list={['data-grid__value', f.mono && 'data-grid__value--mono']}>{f.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="related-title">
+    <div class="container">
+      <SectionHead en="More Works" title="其他作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
+      <div class="dev-grid">
+        {[...related, ...relatedFill].map((w) => <DevCard work={w} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand title="想做一支類似的作品？" service={service} />
+</BaseLayout>
+
+<style>
+  .work-page {
+    padding-top: 40px;
+  }
+  .work-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 56px;
+    margin-top: 40px;
+  }
+  .synopsis {
+    font-size: 18px;
+    line-height: 1.9;
+    color: var(--text-soft);
+  }
+  .work-awards {
+    display: grid;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .work-awards li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+    color: var(--muted);
+  }
+  .work-awards .badge {
+    margin-left: 0;
+  }
+  .credits {
+    margin-top: 40px;
+  }
+  .credits__title {
+    margin-bottom: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .credits__list {
+    border-top: 1px solid var(--line);
+  }
+  .credits__list div {
+    display: grid;
+    grid-template-columns: 9em minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .credits__list dt {
+    color: var(--muted);
+  }
+  .credits__list a {
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .credits__list a:hover {
+    color: var(--accent);
+  }
+  .facts {
+    align-self: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) {
+    .work-body {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+</style>

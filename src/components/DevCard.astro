@@ -1,0 +1,24 @@
+---
+/** 顯影卡：低亮度黑白，hover／鍵盤聚焦時顯影成全彩（設計文件 §6-4） */
+import { Image } from 'astro:assets';
+import { routes } from '../data/site';
+import { categoryLabel } from '../data/categories';
+import { workMetaParts, type Work } from '../data/queries';
+
+interface Props {
+  work: Work;
+}
+
+const { work } = Astro.props;
+const { title, slug, thumb, thumbAlt, awards } = work.data;
+const meta = workMetaParts(work, categoryLabel).join('・');
+const award = awards[0];
+---
+
+<a class="dev" href={routes.work(slug)} data-category={work.data.category}>
+  <div class="dev__thumb">
+    <Image src={thumb} alt={thumbAlt} widths={[400, 640]} sizes="(max-width: 640px) 50vw, 300px" loading="lazy" decoding="async" />
+  </div>
+  <p class="dev__title">{title}</p>
+  <p class="meta">{meta}{award && <span class="badge">{award.result}</span>}</p>
+</a>

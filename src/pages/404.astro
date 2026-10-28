@@ -1,0 +1,41 @@
+---
+/** 404：GitHub Pages 以 /404.html 回應所有不存在的網址 */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { routes } from '../data/site';
+---
+
+<BaseLayout title="找不到這一頁" description="這個網址沒有內容。可以從作品、服務或洽詢頁重新開始。" noindex>
+  <section class="nf">
+    <div class="container">
+      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>404 · Scene Missing</p>
+      <h1 class="nf__title">這一幕，剪掉了。</h1>
+      <p class="nf__lead">這個網址沒有內容，可能已經移動或從來不存在。</p>
+      <div class="nf__actions">
+        <a class="btn btn--accent" href={routes.home()}>回到首頁</a>
+        <a class="btn btn--ghost" href={routes.works()}>看作品</a>
+        <a class="btn btn--ghost" href={routes.contact()}>洽詢</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding: clamp(96px, 16vw, 200px) 0;
+  }
+  .nf__title {
+    font-size: clamp(40px, 7vw, 96px);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .nf__lead {
+    margin: 24px 0 40px;
+    font-size: 18px;
+    color: var(--text-soft);
+  }
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+</style>

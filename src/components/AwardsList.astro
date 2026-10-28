@@ -1,0 +1,80 @@
+---
+/** 獲獎紀錄：年份｜賽事｜名次｜作品（有作品頁的連過去） */
+import { routes } from '../data/site';
+import type { AwardRow } from '../data/queries';
+
+interface Props {
+  rows: AwardRow[];
+}
+
+const { rows } = Astro.props;
+---
+
+<ul class="awards">
+  {
+    rows.map((a) => (
+      <li class="aw">
+        <span class="aw__year">{a.year}</span>
+        <span class="aw__event">{a.title}</span>
+        <span class:list={['aw__result', a.winner && 'is-winner']}>{a.result}</span>
+        <span class="aw__work">
+          {a.workSlug ? (
+            <a href={routes.work(a.workSlug)}>《{a.workTitle}》</a>
+          ) : a.workTitle ? (
+            `《${a.workTitle}》`
+          ) : (
+            ''
+          )}
+        </span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .awards {
+    border-top: 1px solid var(--line);
+  }
+  .aw {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 2fr) 110px minmax(0, 1.3fr);
+    align-items: baseline;
+    gap: 24px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .aw__year {
+    font: 14px var(--font-mono);
+    color: var(--muted);
+  }
+  .aw__event {
+    font-weight: 600;
+  }
+  .aw__result {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--text-soft);
+  }
+  .aw__result.is-winner {
+    color: var(--text);
+  }
+  .aw__work {
+    color: var(--muted);
+  }
+  .aw__work a {
+    transition: color 0.2s;
+  }
+  .aw__work a:hover {
+    color: var(--text);
+  }
+  @media (max-width: 640px) {
+    .aw {
+      grid-template-columns: 52px minmax(0, 1fr);
+      row-gap: 2px;
+    }
+    .aw__result,
+    .aw__work {
+      grid-column: 2;
+    }
+  }
+</style>

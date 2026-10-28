@@ -1,0 +1,433 @@
+---
+/**
+ * 首頁（設計文件 §3-1）
+ * Hero → 精選作品＋更多作品（顯影）→ 數字 → 服務 → 製作流程 → 獲獎 → 創辦人 → 合作夥伴 → CTA
+ * 沒有 showreel 之前，Hero 背景用作品劇照拼貼（自動捲動，附暫停鈕；WCAG 2.2.2）
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import WorkCard from '../components/WorkCard.astro';
+import DevCard from '../components/DevCard.astro';
+import ServiceList from '../components/ServiceList.astro';
+import ProcessStrip from '../components/ProcessStrip.astro';
+import AwardsList from '../components/AwardsList.astro';
+import PersonCard from '../components/PersonCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getSiteData } from '../data/queries';
+import { SITE, routes } from '../data/site';
+import { CLIENTS } from '../data/clients.mjs';
+
+const { works, featured, team, teamById, awards } = await getSiteData();
+const [leadWork, ...restFeatured] = featured;
+const featuredIds = new Set(featured.map((w) => w.id));
+const moreWorks = works.filter((w) => !featuredIds.has(w.id)).slice(0, 6);
+
+const winners = awards.filter((a) => a.winner).length;
+const shortlisted = awards.length - winners;
+const approvedClients = CLIENTS.filter((c) => c.approved);
+
+/* Hero 劇照牆：4 欄，每欄 3 張，複製一份接在後面讓捲動無縫 */
+const reelCols = [0, 1, 2, 3].map((c) => [0, 1, 2].map((i) => works[(c + i * 4) % works.length]));
+
+const stats = [
+  { value: '60', unit: '集', label: '平台短劇委製', note: '金魚短劇兩部，各 30 集' },
+  { value: String(winners), unit: '座', label: 'AI 影像競賽獎項', note: `另有 ${shortlisted} 項入圍與入選` },
+  { value: '13', unit: '年', label: '3D 與數位影像資歷', note: '3D 動態預演驅動 AI 生成' },
+  { value: '中・日', label: '雙語製作與提案', note: '日文原創歌詞 MV 獲第一名' },
+];
+---
+
+<BaseLayout description={SITE.description}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__reel" aria-hidden="true">
+      {
+        reelCols.map((col) => (
+          <div class="reel-col">
+            {[...col, ...col].map((w) => (
+              <Image src={w.data.thumb} alt="" width={400} quality={50} loading="lazy" decoding="async" />
+            ))}
+          </div>
+        ))
+      }
+    </div>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__content container">
+      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>AI Film &amp; Video Production · Taipei</p>
+      <h1 class="hero__title" id="hero-title">畫面交給 AI，<br />故事留給<em>人</em>。</h1>
+      <p class="hero__lead">
+        幻五娛樂由幻詠工作室與 5Y工作室合夥成立。從品牌廣告、音樂 MV 到三十集的平台短劇，我們先把故事寫好，再讓 AI 把畫面做出來。
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--accent" href={routes.contact()}>專案洽詢</a>
+        <a class="btn btn--ghost" href="#works">觀看作品 ↓</a>
+      </div>
+      <button class="reel-toggle" type="button" aria-pressed="false">暫停背景動態</button>
+    </div>
+  </section>
+
+  <section class="section" id="works" aria-labelledby="works-title">
+    <div class="container">
+      <SectionHead no="01" en="Selected Works" title="精選作品" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
+      <div class="works-grid">
+        {leadWork && <WorkCard work={leadWork} teamById={teamById} lead />}
+        {restFeatured.map((w) => <WorkCard work={w} teamById={teamById} />)}
+      </div>
+
+      {
+        moreWorks.length > 0 && (
+          <div class="more">
+            <div class="more__head">
+              <h3>更多作品</h3>
+              <span class="more__hint">Hover to develop・滑過顯影</span>
+            </div>
+            <div class="dev-grid dev-grid--6">
+              {moreWorks.map((w) => (
+                <DevCard work={w} />
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="stats" aria-label="幻五的數字">
+    <div class="container">
+      <ul class="stats__grid">
+        {
+          stats.map((s) => (
+            <li class="stat">
+              <b class="stat__value">
+                {s.value}
+                {s.unit && <small>{s.unit}</small>}
+              </b>
+              <span class="stat__label">{s.label}</span>
+              <span class="stat__note">{s.note}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="services" aria-labelledby="services-title">
+    <div class="container">
+      <SectionHead no="02" en="Services" title="我們做的事" id="services-title" link={{ href: routes.services(), label: '服務總覽' }} />
+      <ServiceList />
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead no="03" en="How We Work" title="製作流程" id="process-title" />
+      <ProcessStrip />
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="awards-title">
+    <div class="container">
+      <SectionHead no="04" en="Awards" title="獲獎紀錄" id="awards-title" />
+      <AwardsList rows={awards} />
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="team-title">
+    <div class="container">
+      <SectionHead no="05" en="Founders" title="創辦人" id="team-title" link={{ href: routes.about(), label: '關於幻五' }} />
+      <div class="team">
+        {team.map((m) => <PersonCard member={m} />)}
+      </div>
+    </div>
+  </section>
+
+  {
+    approvedClients.length > 0 && (
+      <section class="partners" aria-labelledby="partners-title">
+        <div class="container">
+          <h2 class="partners__label" id="partners-title">合作過的品牌與平台</h2>
+          <ul class="partners__list">
+            {approvedClients.map((c) => (
+              <li>{c.name}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand secondary={{ label: '企業內訓洽詢', href: routes.contact('training') }} />
+</BaseLayout>
+
+<style>
+  /* ── Hero ─────────────────────────────── */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: end;
+    min-height: min(92vh, 880px);
+    margin-top: calc(var(--header-h) * -1);
+    padding-top: var(--header-h);
+    overflow: hidden;
+  }
+  .hero__reel {
+    position: absolute;
+    inset: -12% -6%;
+    z-index: -2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    transform: rotate(-4deg);
+  }
+  .reel-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .reel-col img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    filter: grayscale(1) brightness(0.5) contrast(1.15);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .reel-col {
+      animation: drift 70s linear infinite;
+    }
+    .reel-col:nth-child(even) {
+      animation-direction: reverse;
+      animation-duration: 90s;
+    }
+  }
+  @keyframes drift {
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  .hero.is-paused .reel-col {
+    animation-play-state: paused;
+  }
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(55% 45% at 88% 8%, rgb(255 77 61 / 0.26), transparent 70%),
+      linear-gradient(90deg, rgb(14 14 16 / 0.9) 0%, rgb(14 14 16 / 0.55) 45%, rgb(14 14 16 / 0.15) 100%),
+      linear-gradient(180deg, rgb(14 14 16 / 0.5) 0%, transparent 35%, rgb(14 14 16 / 0.85) 82%, var(--bg) 100%);
+  }
+  .hero__veil::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.14;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .hero__content {
+    padding-top: 120px;
+    padding-bottom: clamp(64px, 11vh, 120px);
+  }
+  .hero__title {
+    margin-bottom: 28px;
+    font-size: clamp(40px, 7.4vw, 108px);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: 0.02em;
+  }
+  .hero__title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero__lead {
+    max-width: 33em;
+    margin-bottom: 38px;
+    font-size: clamp(16px, 1.5vw, 19px);
+    color: var(--text-soft);
+  }
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .reel-toggle {
+    display: block;
+    margin-top: 28px;
+    padding: 0;
+    font: 12px var(--font-cjk);
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .reel-toggle:hover {
+    color: var(--text);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reel-toggle {
+      display: none;
+    }
+  }
+
+  /* ── 更多作品 ─────────────────────────────── */
+  .more {
+    margin-top: 88px;
+  }
+  .more__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .more__head h3 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .more__hint {
+    font: 11px var(--font-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  @media (hover: none) {
+    .more__hint {
+      display: none;
+    }
+  }
+  .dev-grid--6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 18px;
+  }
+  @media (max-width: 1024px) {
+    .dev-grid--6 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .dev-grid--6 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ── 數字 ─────────────────────────────── */
+  .stats {
+    background: var(--bg-sunken);
+    border-block: 1px solid var(--line);
+  }
+  .stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .stat {
+    padding: 52px 28px;
+    border-left: 1px solid var(--line);
+  }
+  .stat:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .stat__value {
+    display: block;
+    font-family: var(--font-latin);
+    font-stretch: 125%;
+    font-size: clamp(46px, 5.2vw, 76px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .stat__value small {
+    margin-left: 6px;
+    font-family: var(--font-cjk);
+    font-size: 0.3em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .stat__label {
+    display: block;
+    margin-top: 20px;
+    font-weight: 600;
+  }
+  .stat__note {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ── 創辦人、合作 ─────────────────────────────── */
+  .team {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .partners {
+    padding: 64px 0;
+    border-top: 1px solid var(--line);
+  }
+  .partners__label {
+    margin-bottom: 22px;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .partners__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 44px;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 600;
+    color: #8f8b84;
+  }
+
+  @media (max-width: 1024px) {
+    .stats__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stat:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .stat:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+    .team {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero__reel {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .hero__content {
+      padding-top: 96px;
+    }
+    .stat,
+    .stat:first-child,
+    .stat:nth-child(3) {
+      padding: 32px 0;
+      border-left: 0;
+    }
+    .stat:nth-child(even) {
+      padding-left: 16px;
+      border-left: 1px solid var(--line);
+    }
+  }
+</style>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('.hero');
+  const toggle = document.querySelector<HTMLButtonElement>('.reel-toggle');
+  toggle?.addEventListener('click', () => {
+    const paused = hero?.classList.toggle('is-paused') ?? false;
+    toggle.setAttribute('aria-pressed', String(paused));
+    toggle.textContent = paused ? '播放背景動態' : '暫停背景動態';
+  });
+</script>

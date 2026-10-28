@@ -1,0 +1,135 @@
+---
+/**
+ * /works/ — 作品總覽（設計文件 §3-2）
+ * 一頁列完，依發表日新到舊；類別篩選用 JS 切換（沒有 JS 時全部顯示）。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import DevCard from '../../components/DevCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getSiteData } from '../../data/queries';
+import { CATEGORIES } from '../../data/categories';
+import { absRoutes } from '../../data/site';
+
+const { works } = await getSiteData();
+const filters = CATEGORIES.map((c) => ({ ...c, count: works.filter((w) => w.data.category === c.slug).length })).filter(
+  (c) => c.count > 0,
+);
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '作品',
+  url: absRoutes.works(),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: works.map((w, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.work(w.data.slug),
+      name: w.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout
+  title="作品"
+  seoTitle="作品｜AI 廣告、MV、短劇與動畫"
+  description="幻五娛樂的作品：AI 廣告、MV、平台短劇、短片與動畫，包括 GMI Cloud × Wan × DV ASIA 大賽第二名的《間合》、Bouquet wiz AI MV 專業賽第一名的《メモリー・ショップの黄昏》。"
+  schemas={[collectionSchema]}
+>
+  <PageHead
+    en="Works"
+    title="作品"
+    lead="廣告、MV、短劇、短片與動畫。作品頁標出導演、客戶或平台，以及能確認的主要 AI 工具。"
+    crumbs={[{ label: '作品' }]}
+  />
+
+  <section class="section works-page" aria-label="作品列表">
+    <div class="container">
+      <div class="filters" role="group" aria-label="依類別篩選">
+        <button type="button" class="filter is-active" data-filter="all" aria-pressed="true">
+          全部 <span class="filter__count">{works.length}</span>
+        </button>
+        {
+          filters.map((f) => (
+            <button type="button" class="filter" data-filter={f.slug} aria-pressed="false">
+              {f.label} <span class="filter__count">{f.count}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p class="hint">Hover to develop・滑過顯影</p>
+      <div class="dev-grid" data-works>
+        {works.map((w) => <DevCard work={w} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .works-page {
+    padding-top: 48px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filter {
+    height: 38px;
+    padding: 0 16px;
+    font: 600 14px var(--font-cjk);
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .filter:hover {
+    color: var(--text);
+  }
+  .filter.is-active {
+    color: var(--text);
+    border-color: var(--text);
+  }
+  .filter__count {
+    margin-left: 4px;
+    font: 12px var(--font-mono);
+    color: var(--muted);
+  }
+  .hint {
+    margin: 28px 0 22px;
+    font: 11px var(--font-mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  @media (hover: none) {
+    .hint {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter');
+  const cards = document.querySelectorAll<HTMLElement>('[data-works] .dev');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.filter;
+      buttons.forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      cards.forEach((card) => {
+        card.hidden = f !== 'all' && card.dataset.category !== f;
+      });
+    });
+  });
+</script>

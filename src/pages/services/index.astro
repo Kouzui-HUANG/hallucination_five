@@ -1,0 +1,52 @@
+---
+/** /services/ — 服務總覽：四項服務＋製作流程 */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import ServiceList from '../../components/ServiceList.astro';
+import ProcessStrip from '../../components/ProcessStrip.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SERVICES } from '../../data/services.mjs';
+import { absRoutes, routes } from '../../data/site';
+
+const listSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: '幻五娛樂的服務',
+  itemListElement: SERVICES.map((s, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: absRoutes.service(s.slug),
+    name: s.name,
+  })),
+};
+---
+
+<BaseLayout
+  title="服務"
+  seoTitle="服務｜AI 廣告、短劇製作、課程內訓與導入顧問"
+  description="幻五娛樂的四項服務：AI 商業影片製作、短劇與影集、AI 影片課程與企業內訓、生成式 AI 導入顧問。從需求訪談、腳本、3D 動態預演到剪輯交付。"
+  schemas={[listSchema]}
+>
+  <PageHead
+    en="Services"
+    title="我們做的事"
+    lead="從一支 15 秒的廣告、三十集的平台短劇，到幫你的團隊把 AI 用進日常工作。四項服務背後是同一套方法：故事先寫好，設定先做足，每一格畫面都由人判斷。"
+    crumbs={[{ label: '服務' }]}
+  />
+
+  <section class="section" aria-label="服務項目">
+    <div class="container">
+      <ServiceList />
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead en="How We Work" title="影像製作流程" id="process-title" link={{ href: routes.works(), label: '看作品' }} />
+      <ProcessStrip />
+    </div>
+  </section>
+
+  <CtaBand secondary={{ label: '企業內訓洽詢', href: routes.contact('training') }} />
+</BaseLayout>

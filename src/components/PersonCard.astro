@@ -1,0 +1,84 @@
+---
+/** 創辦人卡（首頁、關於頁） */
+import { Image } from 'astro:assets';
+import { routes } from '../data/site';
+import type { Member } from '../data/queries';
+
+interface Props {
+  member: Member;
+}
+
+const { member } = Astro.props;
+const { name, nameEn, role, summary, specialties, portrait, portraitAlt } = member.data;
+---
+
+<article class="person">
+  <figure class="person__ph">
+    <Image src={portrait} alt={portraitAlt} widths={[240, 400]} sizes="200px" loading="lazy" decoding="async" />
+  </figure>
+  <div>
+    <p class="person__role">{role}</p>
+    <h3 class="person__name">{name}</h3>
+    <p class="person__en">{nameEn.toUpperCase()}</p>
+    <p class="person__summary">{summary}</p>
+    <ul class="tags person__tags">{specialties.map((s) => <li>{s}</li>)}</ul>
+    <a class="link-arrow" href={routes.team(member.id)}>認識{name.slice(1)} →</a>
+  </div>
+</article>
+
+<style>
+  .person {
+    display: grid;
+    grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+    gap: 28px;
+    padding: 28px;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .person__ph {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+  }
+  .person__ph img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(0.25);
+  }
+  .person__role {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .person__name {
+    margin-top: 4px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .person__en {
+    font-family: var(--font-latin);
+    font-stretch: 112%;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .person__summary {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--text-soft);
+  }
+  .person__tags {
+    margin: 16px 0 18px;
+  }
+  @media (max-width: 640px) {
+    .person {
+      grid-template-columns: 1fr;
+      padding: 20px;
+    }
+    .person__ph {
+      max-width: 200px;
+    }
+  }
+</style>

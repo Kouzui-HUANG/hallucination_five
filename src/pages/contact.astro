@@ -1,0 +1,218 @@
+---
+/**
+ * /contact/ — 洽詢（設計文件 §3-6）
+ * SITE.contactFormUrl 有值時嵌入 Google 表單；留空則用 Email 洽詢範本（mailto 預填主旨與欄位）。
+ * ?service=<slug> 會把對應的服務排到第一個並標示（服務頁 CTA 帶過來的）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { SERVICES } from '../data/services.mjs';
+import { SITE, absRoutes, absUrl } from '../data/site';
+
+const FIELDS = ['姓名', '公司／單位', '電話（選填）', '用途與受眾', '片長或集數', '期望上線日', '預算範圍', '參考影片連結'];
+
+const mailto = (serviceName: string) => {
+  const subject = `【${serviceName}洽詢】`;
+  const body = [`服務類型：${serviceName}`, ...FIELDS.map((f) => `${f}：`), '', '專案說明：', ''].join('\n');
+  return `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+const options = [
+  ...SERVICES.map((s) => ({ slug: s.slug, name: s.name, summary: s.summary, href: mailto(s.name) })),
+  { slug: 'other', name: '其他', summary: '媒體採訪、合作提案或其他問題', href: mailto('其他') },
+];
+
+const contactSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: '洽詢',
+  url: absUrl('/contact/'),
+  mainEntity: { '@id': absRoutes.organizationId() },
+};
+---
+
+<BaseLayout
+  title="洽詢"
+  seoTitle="專案洽詢｜AI 廣告、短劇、內訓與顧問"
+  description="AI 商業影片、短劇與影集、課程與企業內訓、AI 導入顧問的洽詢方式。告訴我們用途、片長與時程，我們會在兩個工作天內回覆。"
+  schemas={[contactSchema]}
+>
+  <PageHead
+    en="Contact"
+    title="有一個想拍的故事？"
+    lead="專案、內訓或顧問，都可以從這裡開始。告訴我們用途、片長與時程，我們會在兩個工作天內回覆。"
+    crumbs={[{ label: '洽詢' }]}
+  />
+
+  <section class="section" aria-labelledby="mail-title">
+    <div class="container">
+      {
+        SITE.contactFormUrl ? (
+          <div class="form-wrap">
+            <iframe
+              src={`${SITE.contactFormUrl}?embedded=true`}
+              title="幻五娛樂洽詢表單"
+              loading="lazy"
+              width="100%"
+              height="1400"
+            />
+            <p class="note">
+              表單顯示不完整？<a href={SITE.contactFormUrl} target="_blank" rel="noopener noreferrer">在新分頁開啟 ↗</a>
+            </p>
+          </div>
+        ) : (
+          <>
+            <SectionHead en="Email" title="寄信給我們" id="mail-title" />
+            <p class="mail-big">
+              <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            </p>
+            <p class="lead">選擇洽詢類型，會開啟已經帶好主旨與欄位的郵件，填好就能寄出。</p>
+            <ul class="options" data-options>
+              {options.map((o) => (
+                <li data-slug={o.slug}>
+                  <a class="option" href={o.href}>
+                    <span class="option__name">{o.name}</span>
+                    <span class="option__sum">{o.summary}</span>
+                    <span class="option__arrow" aria-hidden="true">✉</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="tips-title">
+    <div class="container tips-grid">
+      <SectionHead en="Before You Write" title="洽詢時請附上" id="tips-title" />
+      <ul class="tips">
+        <li><b>用途與受眾</b>這支影片要放在哪裡、給誰看。</li>
+        <li><b>片長或集數</b>廣告秒數、MV 長度，或短劇的集數與單集長度。</li>
+        <li><b>期望上線日</b>有固定檔期的案子，請先告訴我們日期。</li>
+        <li><b>預算範圍</b>大概的區間就好，方便我們提出合適的做法。</li>
+        <li><b>參考影片</b>喜歡的風格或作品連結，比形容詞更準確。</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .mail-big {
+    margin-bottom: 18px;
+    font-family: var(--font-latin);
+    font-stretch: 112%;
+    font-size: clamp(24px, 4vw, 48px);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    word-break: break-all;
+  }
+  .mail-big a:hover {
+    color: var(--accent);
+  }
+  .lead {
+    margin-bottom: 32px;
+    color: var(--text-soft);
+  }
+  .options {
+    border-top: 1px solid var(--line);
+  }
+  .option {
+    display: grid;
+    grid-template-columns: minmax(0, 12em) minmax(0, 1fr) 32px;
+    align-items: baseline;
+    gap: 20px;
+    padding: 24px 8px;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s, padding 0.3s;
+  }
+  .option:hover {
+    padding-left: 20px;
+    background: var(--bg-raised);
+  }
+  .option__name {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .option__sum {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .option__arrow {
+    color: var(--muted);
+  }
+  .option:hover .option__arrow {
+    color: var(--accent);
+  }
+  /* 從服務頁帶過來的服務：排到第一個並標示 */
+  .options li.is-picked .option {
+    background: var(--bg-raised);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .form-wrap iframe {
+    width: 100%;
+    border: 0;
+    background: var(--text);
+  }
+  .note {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .tips-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .tips-grid :global(.sec-head) {
+    margin-bottom: 0;
+  }
+  .tips {
+    border-top: 1px solid var(--line);
+  }
+  .tips li {
+    display: grid;
+    grid-template-columns: 7em minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px 0;
+    color: var(--text-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .tips b {
+    color: var(--text);
+  }
+  @media (max-width: 900px) {
+    .tips-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .option {
+      grid-template-columns: minmax(0, 1fr) 24px;
+      row-gap: 4px;
+    }
+    .option__sum {
+      grid-column: 1;
+      grid-row: 2;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .option {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const list = document.querySelector<HTMLElement>('[data-options]');
+  const picked = new URLSearchParams(location.search).get('service');
+  if (list && picked) {
+    const item = list.querySelector<HTMLElement>(`li[data-slug="${CSS.escape(picked)}"]`);
+    if (item) {
+      list.prepend(item);
+      item.classList.add('is-picked');
+    }
+  }
+</script>

@@ -1,0 +1,384 @@
+---
+/**
+ * /team/<slug>/ — 創辦人頁（設計文件 §3-5，結構參考 heart2thriving 的「關於宏瑞」）
+ * Hero → 數字 → About → 代表作 → 獲獎 → 經歷 → 其他連結 → CTA
+ * schema：ProfilePage ＋ Person（@id 供 Organization.founder 與 VideoObject.director 參照）
+ */
+import { Image, getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import DevCard from '../../components/DevCard.astro';
+import AwardsList from '../../components/AwardsList.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getSiteData, worksByMember, awardsOf, type Member } from '../../data/queries';
+import { routes, absRoutes, absAsset } from '../../data/site';
+
+export async function getStaticPaths() {
+  const { team } = await getSiteData();
+  return team.map((member) => ({ params: { slug: member.id }, props: { member } }));
+}
+
+const { member } = Astro.props as { member: Member };
+const { works, awards } = await getSiteData();
+const d = member.data;
+const { Content } = await render(member);
+
+const memberWorks = worksByMember(works, member.id);
+const memberAwards = awardsOf(awards, member.id);
+const pageUrl = absRoutes.team(member.id);
+
+const SAME_AS_LABEL: Record<string, string> = {
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  threads: 'Threads',
+  facebook: 'Facebook',
+  directory: '台灣AI影視創作者圖鑑條目',
+};
+const siteLabel = (url: string) => {
+  const host = new URL(url).hostname.replace(/^www\./, '');
+  if (host === 'vocus.cc') return '方格子沙龍';
+  if (host === 'portaly.cc') return 'Portaly';
+  return host;
+};
+const links = Object.entries(d.sameAs)
+  .filter(([, url]) => !!url)
+  .map(([key, url]) => ({ label: SAME_AS_LABEL[key] ?? siteLabel(url as string), url: url as string }));
+
+const portraitImg = await getImage({ src: d.portrait, width: 800, format: 'jpg', quality: 85 });
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: pageUrl,
+  dateModified: `${d.updatedAt}T00:00:00+08:00`,
+  mainEntity: {
+    '@type': 'Person',
+    '@id': absRoutes.personId(member.id),
+    name: d.name,
+    alternateName: [d.nameEn, ...d.alias],
+    jobTitle: d.jobTitle,
+    description: d.description,
+    image: absAsset(portraitImg.src),
+    url: pageUrl,
+    worksFor: { '@id': absRoutes.organizationId() },
+    ...(d.alumniOf.length
+      ? { alumniOf: d.alumniOf.map((name) => ({ '@type': 'EducationalOrganization', name })) }
+      : {}),
+    ...(d.knowsLanguage.length ? { knowsLanguage: d.knowsLanguage } : {}),
+    knowsAbout: d.specialties,
+    ...(memberAwards.length
+      ? { award: memberAwards.map((a) => `${a.year} ${a.title} ${a.result}${a.workTitle ? `《${a.workTitle}》` : ''}`) }
+      : {}),
+    sameAs: links.map((l) => l.url),
+  },
+};
+---
+
+<BaseLayout
+  title={d.name}
+  seoTitle={d.seoTitle}
+  description={d.description}
+  ogImage={portraitImg.src}
+  ogType="profile"
+  schemas={[personSchema]}
+  breadcrumbs={[
+    { name: '關於幻五', item: absRoutes.about() },
+    { name: d.name, item: pageUrl },
+  ]}
+>
+  <header class="profile">
+    <div class="container profile__grid">
+      <div>
+        <nav class="crumbs" aria-label="麵包屑">
+          <a href={routes.home()}>首頁</a><span aria-hidden="true">／</span>
+          <a href={routes.about()}>關於幻五</a><span aria-hidden="true">／</span>
+          <span aria-current="page">{d.name}</span>
+        </nav>
+        <p class="profile__role">{d.role}</p>
+        <h1 class="profile__name">{d.name}</h1>
+        <p class="profile__en">{d.nameEn.toUpperCase()}{d.alias.length > 0 && <span>・{d.alias.join('・')}</span>}</p>
+        <p class="profile__tagline">{d.tagline}</p>
+        <ul class="tags">{d.specialties.map((s) => <li>{s}</li>)}</ul>
+      </div>
+      <figure class="profile__ph">
+        <Image src={d.portrait} alt={d.portraitAlt} widths={[320, 480, 640]} sizes="(max-width: 900px) 60vw, 360px" loading="eager" />
+      </figure>
+    </div>
+  </header>
+
+  {
+    d.numbers.length > 0 && (
+      <section class="numbers" aria-label={`${d.name}的數字`}>
+        <div class="container">
+          <ul class="numbers__grid">
+            {d.numbers.map((n) => (
+              <li class="num">
+                <b class="num__value">
+                  {n.value}
+                  {n.unit && <small>{n.unit}</small>}
+                </b>
+                <span class="num__label">{n.label}</span>
+                {n.note && <span class="num__note">{n.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="about-title">
+    <div class="container about-grid">
+      <SectionHead en="About" title={`關於${d.name}`} id="about-title" />
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </section>
+
+  {
+    memberWorks.length > 0 && (
+      <section class="section section--tight" aria-labelledby="works-title">
+        <div class="container">
+          <SectionHead en="Works" title="代表作" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
+          <div class="dev-grid">
+            {memberWorks.map((w) => (
+              <DevCard work={w} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    memberAwards.length > 0 && (
+      <section class="section section--tight" aria-labelledby="awards-title">
+        <div class="container">
+          <SectionHead en="Awards" title="獲獎" id="awards-title" />
+          <AwardsList rows={memberAwards} />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    d.timeline.length > 0 && (
+      <section class="section section--tight" aria-labelledby="timeline-title">
+        <div class="container">
+          <SectionHead en="Timeline" title="經歷" id="timeline-title" />
+          <ol class="timeline">
+            {d.timeline.map((t) => (
+              <li class="timeline__item">
+                <span class="timeline__year">{t.year}</span>
+                <div>
+                  <p class="timeline__title">{t.title}</p>
+                  {t.note && <p class="timeline__note">{t.note}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    links.length > 0 && (
+      <section class="section section--tight" aria-labelledby="links-title">
+        <div class="container">
+          <SectionHead en="Elsewhere" title="其他連結" id="links-title" />
+          <ul class="links">
+            {links.map((l) => (
+              <li>
+                <a class="links__item" href={l.url} target="_blank" rel="noopener noreferrer">
+                  {l.label} <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <CtaBand title={`想找${d.name.slice(1)}合作？`} />
+</BaseLayout>
+
+<style>
+  .profile {
+    padding: clamp(48px, 7vw, 96px) 0 clamp(40px, 5vw, 64px);
+    border-bottom: 1px solid var(--line);
+  }
+  .profile__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 360px);
+    gap: 56px;
+    align-items: end;
+  }
+  .profile__role {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .profile__name {
+    margin-top: 8px;
+    font-size: clamp(48px, 8vw, 112px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.08em;
+  }
+  .profile__en {
+    margin-top: 14px;
+    font-family: var(--font-latin);
+    font-stretch: 112%;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .profile__en span {
+    font-family: var(--font-cjk);
+    letter-spacing: 0.06em;
+  }
+  .profile__tagline {
+    max-width: 30em;
+    margin: 24px 0 22px;
+    font-size: clamp(17px, 1.6vw, 20px);
+    color: var(--text-soft);
+  }
+  .profile__ph {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--bg-raised);
+  }
+  .profile__ph img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .numbers {
+    background: var(--bg-sunken);
+    border-bottom: 1px solid var(--line);
+  }
+  .numbers__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .num {
+    padding: 44px 28px;
+    border-left: 1px solid var(--line);
+  }
+  .num:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .num__value {
+    display: block;
+    font-family: var(--font-latin);
+    font-stretch: 125%;
+    font-size: clamp(36px, 4.4vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+  }
+  .num__value small {
+    margin-left: 6px;
+    font-family: var(--font-cjk);
+    font-size: 0.34em;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .num__label {
+    display: block;
+    margin-top: 16px;
+    font-weight: 600;
+  }
+  .num__note {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .about-grid :global(.sec-head) {
+    margin-bottom: 0;
+  }
+  .timeline {
+    border-top: 1px solid var(--line);
+  }
+  .timeline__item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 24px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .timeline__year {
+    font: 15px var(--font-mono);
+    color: var(--muted);
+  }
+  .timeline__title {
+    font-weight: 600;
+  }
+  .timeline__note {
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .links__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 44px;
+    padding: 0 18px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .links__item:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  @media (max-width: 900px) {
+    .profile__grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .profile__ph {
+      max-width: 280px;
+      order: -1;
+    }
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+  @media (max-width: 640px) {
+    .numbers__grid {
+      grid-template-columns: 1fr;
+    }
+    .num,
+    .num:first-child {
+      padding: 28px 0;
+      border-left: 0;
+    }
+    .num + .num {
+      border-top: 1px solid var(--line);
+    }
+    .timeline__item {
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+    }
+  }
+</style>

@@ -1,0 +1,18 @@
+---
+/** 區塊標頭：編號＋英文眉標＋中文標題＋右側「全部 →」連結 */
+interface Props {
+  no?: string;
+  en: string;
+  title: string;
+  id?: string;
+  link?: { href: string; label: string };
+}
+
+const { no, en, title, id, link } = Astro.props;
+---
+
+<header class="sec-head">
+  <span class="sec-head__no">{no}</span>
+  <h2 class="sec-head__title" id={id}><span class="sec-head__en">{en}</span>{title}</h2>
+  {link ? <a class="sec-head__all" href={link.href}>{link.label} →</a> : <span />}
+</header>

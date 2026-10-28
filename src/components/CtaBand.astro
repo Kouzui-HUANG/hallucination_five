@@ -1,0 +1,73 @@
+---
+/** 頁面底部的洽詢帶 */
+import { SITE, routes } from '../data/site';
+
+interface Props {
+  title?: string;
+  lead?: string;
+  /** 帶入洽詢頁的服務類型 */
+  service?: string;
+  secondary?: { label: string; href: string };
+}
+
+const {
+  title = '有一個想拍的故事？',
+  lead = '告訴我們用途、片長與時程，我們會在兩個工作天內回覆。',
+  service,
+  secondary,
+} = Astro.props;
+---
+
+<section class="cta" aria-labelledby="cta-title">
+  <div class="container">
+    <p class="eyebrow"><span class="rec" aria-hidden="true"></span>Contact</p>
+    <h2 class="cta__title" id="cta-title">{title}</h2>
+    <p class="cta__lead">{lead}</p>
+    <div class="cta__actions">
+      <a class="btn btn--accent btn--lg" href={routes.contact(service)}>專案洽詢</a>
+      {secondary && <a class="btn btn--ghost btn--lg" href={secondary.href}>{secondary.label}</a>}
+    </div>
+    <p class="cta__mail"><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding: clamp(96px, 12vw, 168px) 0;
+    background:
+      radial-gradient(65% 90% at 100% 100%, rgb(255 77 61 / 0.2), transparent 62%),
+      var(--bg-raised);
+    border-top: 1px solid var(--line);
+  }
+  .cta__title {
+    margin-bottom: 22px;
+    font-size: clamp(38px, 6.2vw, 88px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+  }
+  .cta__lead {
+    max-width: 32em;
+    margin-bottom: 40px;
+    font-size: 18px;
+    color: var(--text-soft);
+  }
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .cta__mail {
+    margin-top: 28px;
+    font: 15px var(--font-mono);
+    color: var(--muted);
+  }
+  .cta__mail a:hover {
+    color: var(--text);
+  }
+  @media (max-width: 640px) {
+    .cta__actions .btn {
+      flex: 1 1 100%;
+    }
+  }
+</style>

@@ -1,0 +1,343 @@
+---
+/**
+ * /services/<slug>/ — 服務頁（設計文件 §3-3，四頁共用版型）
+ * 定義與適合誰 → 交付內容 →（課程）→ 相關作品 →（流程）→ 常見問題 → 其他服務 → CTA
+ * schema：Service ＋ FAQPage
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import DevCard from '../../components/DevCard.astro';
+import ProcessStrip from '../../components/ProcessStrip.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { SERVICES } from '../../data/services.mjs';
+import { COURSES } from '../../data/courses.mjs';
+import { getSiteData } from '../../data/queries';
+import { SITE, routes, absRoutes } from '../../data/site';
+
+export function getStaticPaths() {
+  return SERVICES.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+const { service } = Astro.props as { service: (typeof SERVICES)[number] };
+const { works, teamById } = await getSiteData();
+
+const related = works.filter((w) => service.categories.includes(w.data.category)).slice(0, 8);
+const courses = service.slug === 'training' ? COURSES.filter((c) => c.url) : [];
+const showProcess = service.slug === 'commercial' || service.slug === 'series';
+const others = SERVICES.filter((s) => s.slug !== service.slug);
+const pageUrl = absRoutes.service(service.slug);
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': `${pageUrl}#service`,
+  name: service.name,
+  alternateName: service.nameEn,
+  serviceType: service.seoTitle,
+  description: service.description,
+  url: pageUrl,
+  provider: { '@id': absRoutes.organizationId() },
+  areaServed: [
+    { '@type': 'Country', name: 'Taiwan' },
+    { '@type': 'Country', name: 'Japan' },
+  ],
+  availableLanguage: ['zh-Hant', 'ja'],
+  audience: { '@type': 'Audience', audienceType: service.forWho },
+};
+
+/* Google 已限縮 FAQ 複合式結果，但 AI 搜尋會引用，照做（設計文件 §7-1） */
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: service.faq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout
+  title={service.name}
+  seoTitle={service.seoTitle}
+  description={service.description}
+  schemas={[serviceSchema, faqSchema]}
+  breadcrumbs={[
+    { name: '服務', item: absRoutes.services() },
+    { name: service.name, item: pageUrl },
+  ]}
+>
+  <PageHead
+    en={`${service.no} · ${service.nameEn}`}
+    title={service.name}
+    lead={service.lead}
+    crumbs={[{ label: '服務', href: routes.services() }, { label: service.name }]}
+  >
+    <p class="for-who"><span>適合</span>{service.forWho}</p>
+  </PageHead>
+
+  <section class="section" aria-labelledby="deliver-title">
+    <div class="container">
+      <SectionHead en="What We Deliver" title="交付內容" id="deliver-title" />
+      <ol class="deliver">
+        {
+          service.deliverables.map((d, i) => (
+            <li class="deliver__item">
+              <span class="deliver__no">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{d.title}</h3>
+              <p>{d.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  {
+    courses.length > 0 && (
+      <section class="section section--tight" aria-labelledby="courses-title">
+        <div class="container">
+          <SectionHead en="Courses" title="公開課程" id="courses-title" />
+          <ul class="courses">
+            {courses.map((c) => {
+              const teacher = teamById.get(c.instructor);
+              return (
+                <li class="course">
+                  <p class="course__kind">
+                    {c.kind}・{c.format}
+                  </p>
+                  <h3 class="course__title">{c.title}</h3>
+                  {teacher && (
+                    <p class="course__teacher">
+                      講師 <a href={routes.team(teacher.id)}>{teacher.data.name}</a>
+                    </p>
+                  )}
+                  <a class="btn btn--ghost btn--sm" href={c.url} target="_blank" rel="noopener noreferrer">
+                    課程介紹與報名 ↗
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+          <p class="note">報名與付款在合作平台完成。企業包班與內訓請直接洽詢。</p>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    related.length > 0 && (
+      <section class="section section--tight" aria-labelledby="related-title">
+        <div class="container">
+          <SectionHead en="Related Works" title="相關作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
+          <div class="dev-grid">
+            {related.map((w) => (
+              <DevCard work={w} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    showProcess && (
+      <section class="section section--tight" aria-labelledby="process-title">
+        <div class="container">
+          <SectionHead en="How We Work" title="製作流程" id="process-title" />
+          <ProcessStrip />
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--tight" aria-labelledby="faq-title">
+    <div class="container">
+      <SectionHead en="FAQ" title="常見問題" id="faq-title" />
+      <div class="faq">
+        {
+          service.faq.map((f) => (
+            <div class="faq__item">
+              <h3 class="faq__q">{f.q}</h3>
+              <p class="faq__a">{f.a}</p>
+            </div>
+          ))
+        }
+      </div>
+      <p class="note">其他問題，歡迎來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。</p>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="others-title">
+    <div class="container">
+      <SectionHead en="Other Services" title="其他服務" id="others-title" />
+      <ul class="others">
+        {
+          others.map((s) => (
+            <li>
+              <a class="others__link" href={routes.service(s.slug)}>
+                <span class="others__no">{s.no}</span>
+                <span class="others__name">{s.name}</span>
+                <span class="others__sum">{s.summary}</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand service={service.slug} />
+</BaseLayout>
+
+<style>
+  .for-who {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    color: var(--text-soft);
+  }
+  .for-who span {
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 26px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .deliver {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .deliver__item {
+    padding: 32px 32px 36px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .deliver__no {
+    font: 12px var(--font-mono);
+    color: var(--muted);
+  }
+  .deliver__item h3 {
+    margin-top: 10px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .deliver__item p {
+    margin-top: 12px;
+    color: var(--text-soft);
+  }
+  .courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .course {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 28px;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .course__kind {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .course__title {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .course__teacher {
+    margin-bottom: 8px;
+    color: var(--text-soft);
+  }
+  .course__teacher a {
+    font-weight: 600;
+  }
+  .course__teacher a:hover {
+    color: var(--accent);
+  }
+  .note {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .note a {
+    color: var(--text);
+  }
+  .faq {
+    border-top: 1px solid var(--line);
+  }
+  .faq__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 32px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .faq__q {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .faq__a {
+    color: var(--text-soft);
+  }
+  .others {
+    border-top: 1px solid var(--line);
+  }
+  .others__link {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 14em) minmax(0, 1fr) 24px;
+    align-items: baseline;
+    gap: 20px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+    transition: color 0.2s;
+  }
+  .others__link:hover {
+    color: var(--accent);
+  }
+  .others__no {
+    font: 13px var(--font-mono);
+    color: var(--muted);
+  }
+  .others__name {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .others__sum {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  @media (max-width: 900px) {
+    .deliver {
+      grid-template-columns: 1fr;
+    }
+    .faq__item {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .others__link {
+      grid-template-columns: 36px minmax(0, 1fr) 20px;
+    }
+    .others__sum {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+  @media (max-width: 640px) {
+    .deliver__item {
+      padding: 24px 20px 28px;
+    }
+  }
+</style>
