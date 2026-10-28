@@ -18,8 +18,8 @@ export const SITE = {
   base: BASE_PATH,
   url: SITE_URL,
   locale: 'zh-Hant-TW',
-  /** 公司洽詢信箱（Google Workspace 別名，上線前要先開好；設計文件 §11 #10） */
-  email: 'studio@hallucination28.com',
+  /** 公司洽詢信箱（與圖鑑編輯部共用；設計文件 §11 #10） */
+  email: 'ai_video@hallucination28.com',
   /** Google 表單的 viewform 網址。留空則聯絡頁改用 Email 洽詢範本 */
   contactFormUrl: '',
   /** 公司社群帳號（創辦人個人帳號寫在 team）。Organization.sameAs 只收非空值 */

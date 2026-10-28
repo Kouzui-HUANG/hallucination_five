@@ -29,7 +29,6 @@ npm run brand-assets  # 重新產生 favicon、logo.png、og-default.png
 
 ## 上線前要補的
 
-- [ ] Google Workspace 開好 `studio@hallucination28.com` 別名
 - [ ] 統一編號（`COMPANY.taxId`）
 - [ ] 兩位創辦人的真人照片（目前是圖鑑用的頭像）
 - [ ] 服務頁常見問題的措辭確認（著作權、肖像授權那幾題建議請律師看過）
