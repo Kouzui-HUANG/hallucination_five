@@ -1,5 +1,6 @@
 ---
-/** 獲獎紀錄：年份｜賽事｜名次｜作品（有作品頁的連過去） */
+/** 獲獎紀錄：年份｜賽事｜名次｜作品（有作品頁的連過去）；有實體照片的獎項接在列表後 */
+import AwardPhoto from './AwardPhoto.astro';
 import { routes } from '../data/site';
 import type { AwardRow } from '../data/queries';
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const { rows } = Astro.props;
+const withPhoto = rows.filter((a) => a.photo);
 ---
 
 <ul class="awards">
@@ -31,9 +33,32 @@ const { rows } = Astro.props;
   }
 </ul>
 
+{
+  withPhoto.length > 0 && (
+    <div class="aw-photos">
+      {withPhoto.map((a) => (
+        <AwardPhoto
+          photo={a.photo!}
+          year={a.year}
+          title={a.title}
+          result={a.result}
+          workTitle={a.workTitle}
+          workHref={a.workSlug && routes.work(a.workSlug)}
+        />
+      ))}
+    </div>
+  )
+}
+
 <style>
   .awards {
     border-top: 1px solid var(--line);
+  }
+  .aw-photos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    margin-top: 32px;
   }
   .aw {
     display: grid;

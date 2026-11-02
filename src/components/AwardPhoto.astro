@@ -1,0 +1,61 @@
+---
+/** 獎項的實體照片（獎盃、獎狀）：作品頁與獲獎列表共用；有 workTitle 才顯示作品名 */
+import { Image } from 'astro:assets';
+
+interface Props {
+  photo: { src: ImageMetadata; alt: string };
+  year: number;
+  title: string;
+  result: string;
+  workTitle?: string;
+  workHref?: string;
+}
+
+const { photo, year, title, result, workTitle, workHref } = Astro.props;
+---
+
+<figure class="aw-photo">
+  <Image class="aw-photo__img" src={photo.src} alt={photo.alt} widths={[420, 840]} sizes="(max-width: 480px) 100vw, 420px" loading="lazy" decoding="async" />
+  <figcaption class="aw-photo__cap">
+    <span class="aw-photo__label">獎盃與獎狀</span>
+    <span class="aw-photo__title">{year} {title} {result}</span>
+    {workTitle && (workHref ? <a href={workHref}>《{workTitle}》</a> : <span>《{workTitle}》</span>)}
+  </figcaption>
+</figure>
+
+<style>
+  .aw-photo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px 24px;
+  }
+  .aw-photo__img {
+    flex: 1 1 280px;
+    min-width: 0;
+    max-width: 420px;
+    height: auto;
+    border: 1px solid var(--line);
+  }
+  .aw-photo__cap {
+    flex: 1 1 200px;
+    display: grid;
+    gap: 4px;
+    color: var(--muted);
+  }
+  .aw-photo__label {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+  .aw-photo__title {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .aw-photo__cap a {
+    transition: color 0.2s;
+  }
+  .aw-photo__cap a:hover {
+    color: var(--text);
+  }
+</style>

@@ -18,6 +18,8 @@ export type AwardRow = {
   people: string[];
   /** 名次與等第獎算「獲獎」，入圍與入選不算 */
   winner: boolean;
+  /** 獎盃、獎狀的實體照片 */
+  photo?: { src: ImageMetadata; alt: string };
 };
 
 export type SiteData = {

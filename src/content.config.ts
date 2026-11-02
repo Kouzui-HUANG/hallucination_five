@@ -56,7 +56,8 @@ const works = defineCollection({
         platform: z.string().optional(),
         tools: z.array(z.string()).default([]),
         synopsis: z.string(),
-        awards: z.array(award).default([]),
+        /** photo：獎盃、獎狀的實體照片，放 works/awards/ */
+        awards: z.array(award.extend({ photo: z.object({ src: image(), alt: z.string() }).optional() })).default([]),
         featured: z.boolean().default(false),
         /** 首頁精選與作品總覽的排序（小的在前）；沒填的依發表日新到舊 */
         order: z.number().int().optional(),

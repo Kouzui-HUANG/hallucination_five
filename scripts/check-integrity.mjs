@@ -1,7 +1,7 @@
 /**
  * 上稿防呆（npm run check；CI 在 build 前跑，有錯就不部署）
  *
- * 錯誤（exit 1）：frontmatter 缺欄位、日期沒加引號、縮圖或肖像檔不存在、導演或製作名單指到不存在的成員、
+ * 錯誤（exit 1）：frontmatter 缺欄位、日期沒加引號、縮圖、肖像或獎項照片不存在、導演或製作名單指到不存在的成員、
  *               作品沒有影片也沒有劇照、精選作品超過 6 件或排序重複、服務 slug 重複
  * 提醒（不擋部署）：上線前要補的資料（統一編號、洽詢表單、客戶授權…）
  */
@@ -74,6 +74,11 @@ for (const name of readdirSync(WORKS).filter((n) => n.endsWith('.md') && !n.star
   if (fm.category && !CATEGORIES.includes(fm.category)) err(file, `category「${fm.category}」不在 ${CATEGORIES.join(' / ')} 裡`);
   checkDate(file, fm, 'releasedAt');
   if (fm.thumb && !existsSync(join(WORKS, fm.thumb))) err(file, `縮圖不存在：${fm.thumb}`);
+  for (const a of fm.awards ?? []) {
+    if (!a.photo) continue;
+    if (!a.photo.alt) err(file, `「${a.title}」的 photo 缺少 alt`);
+    if (!a.photo.src || !existsSync(join(WORKS, a.photo.src))) err(file, `獎項照片不存在：${a.photo.src}`);
+  }
   if (!fm.videoUrl && !(fm.stills?.length > 0)) err(file, '沒有 videoUrl 時必須提供 stills');
   if (fm.videoUrl && !/^https:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\//.test(fm.videoUrl)) {
     err(file, `videoUrl 只收 YouTube／Vimeo：${fm.videoUrl}`);
