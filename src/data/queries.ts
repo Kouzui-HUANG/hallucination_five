@@ -18,8 +18,9 @@ export type AwardRow = {
   people: string[];
   /** 名次與等第獎算「獲獎」，入圍與入選不算 */
   winner: boolean;
-  /** 獎盃、獎狀的實體照片 */
-  photo?: { src: ImageMetadata; alt: string };
+  /** 獎盃、獎狀的實體照片；有 person 的只在該成員的頁面顯示本人那張 */
+  photos?: { src: ImageMetadata; alt: string; person?: string }[];
+  photoLabel?: string;
 };
 
 export type SiteData = {
@@ -98,7 +99,9 @@ export function directorsOf(work: Work, teamById: Map<string, Member>): Member[]
 
 /** 某位成員的獲獎（作品獎＋個人額外獎項） */
 export function awardsOf(awards: AwardRow[], slug: string): AwardRow[] {
-  return awards.filter((a) => a.people.includes(slug));
+  return awards
+    .filter((a) => a.people.includes(slug))
+    .map((a) => ({ ...a, photos: a.photos?.filter((p) => !p.person || p.person === slug) }));
 }
 
 /* ── 影片 URL 解析（沿用圖鑑） ─────────────────────────── */

@@ -3,7 +3,8 @@
 import { Image } from 'astro:assets';
 
 interface Props {
-  photo: { src: ImageMetadata; alt: string };
+  photos: { src: ImageMetadata; alt: string }[];
+  label: string;
   year: number;
   title: string;
   result: string;
@@ -11,13 +12,17 @@ interface Props {
   workHref?: string;
 }
 
-const { photo, year, title, result, workTitle, workHref } = Astro.props;
+const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
 ---
 
-<figure class="aw-photo">
-  <Image class="aw-photo__img" src={photo.src} alt={photo.alt} widths={[420, 840]} sizes="(max-width: 480px) 100vw, 420px" loading="lazy" decoding="async" />
+<figure class:list={['aw-photo', photos.length > 1 && 'aw-photo--multi']}>
+  {
+    photos.map((p) => (
+      <Image class="aw-photo__img" src={p.src} alt={p.alt} widths={[420, 840]} sizes="(max-width: 480px) 100vw, 420px" loading="lazy" decoding="async" />
+    ))
+  }
   <figcaption class="aw-photo__cap">
-    <span class="aw-photo__label">獎盃與獎狀</span>
+    <span class="aw-photo__label">{label}</span>
     <span class="aw-photo__title">{year} {title} {result}</span>
     {workTitle && (workHref ? <a href={workHref}>《{workTitle}》</a> : <span>《{workTitle}》</span>)}
   </figcaption>
@@ -31,7 +36,7 @@ const { photo, year, title, result, workTitle, workHref } = Astro.props;
     gap: 16px 24px;
   }
   .aw-photo__img {
-    flex: 1 1 280px;
+    flex: 1 1 220px;
     min-width: 0;
     max-width: 420px;
     height: auto;
@@ -42,6 +47,9 @@ const { photo, year, title, result, workTitle, workHref } = Astro.props;
     display: grid;
     gap: 4px;
     color: var(--muted);
+  }
+  .aw-photo--multi .aw-photo__cap {
+    flex-basis: 100%;
   }
   .aw-photo__label {
     font-size: 14px;

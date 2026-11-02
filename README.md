@@ -245,9 +245,11 @@ awards:
   - year: 2026
     title: "比賽名稱"
     result: "第一名"            # 第一名／第二名／第三名／三等獎／決賽入圍／入圍／入選
-    photo:                     # 選填：獎盃、獎狀照片，會出現在作品頁、首頁與創辦人頁的獲獎區
-      src: "./awards/my-work.jpg"
-      alt: "照片的文字描述"
+    photoLabel: "獎盃與獎狀"    # 選填：圖說標籤，預設「獎狀」
+    photos:                    # 選填：獎盃、獎狀照片，會出現在作品頁、首頁與創辦人頁的獲獎區
+      - src: "./awards/my-work.jpg"
+        alt: "照片的文字描述"
+        person: "lin-chung-yen" # 選填：個人獎狀，該創辦人頁只顯示本人那張
 featured: false                # 首頁精選最多 6 件
 order: 7                       # 精選排序，1 是大卡
 ---

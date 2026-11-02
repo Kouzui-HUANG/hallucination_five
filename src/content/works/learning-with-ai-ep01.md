@@ -18,9 +18,10 @@ awards:
   - year: 2025
     title: "愛奇藝 AI 短片創作大賽"
     result: "三等獎"
-    photo:
-      src: "./awards/learning-with-ai-ep01.jpg"
-      alt: "愛奇藝「與AI共生」短片創作大賽的三等獎水晶獎盃，底座印有 iQIYI 2025，後方是頒給《與AI共學 EP01：期末考試》的三等獎獎狀"
+    photoLabel: "獎盃與獎狀"
+    photos:
+      - src: "./awards/learning-with-ai-ep01.jpg"
+        alt: "愛奇藝「與AI共生」短片創作大賽的三等獎水晶獎盃，底座印有 iQIYI 2025，後方是頒給《與AI共學 EP01：期末考試》的三等獎獎狀"
 featured: true
 order: 5
 ---

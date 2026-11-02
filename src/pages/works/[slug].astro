@@ -130,9 +130,9 @@ const videoSchema = {
             )
           }
           {
-            awards.filter((a) => a.photo).map((a) => (
+            awards.filter((a) => a.photos?.length).map((a) => (
               <div class="work-award-photo">
-                <AwardPhoto photo={a.photo!} year={a.year} title={a.title} result={a.result} />
+                <AwardPhoto photos={a.photos!} label={a.photoLabel ?? '獎狀'} year={a.year} title={a.title} result={a.result} />
               </div>
             ))
           }

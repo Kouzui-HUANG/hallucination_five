@@ -26,6 +26,13 @@ awards:
   - year: 2026
     title: "GMI Cloud × Wan × DV ASIA AI 影視職人創作大賽"
     result: "第二名"
+    photos:
+      - src: "./awards/maai-huang-hung-jui.jpg"
+        alt: "GMI 頒發的 AI 影視職人創作大賽獎狀，得獎人黃宏瑞，獎項為二獎（Silver Award），日期 2026 年 8 月 30 日，有 GMI Cloud 執行長簽名"
+        person: "huang-hung-jui"
+      - src: "./awards/maai-lin-chung-yen.jpg"
+        alt: "GMI 頒發的 AI 影視職人創作大賽獎狀，得獎人林仲彥，獎項為二獎（Silver Award），日期 2026 年 8 月 30 日，有 GMI Cloud 執行長簽名"
+        person: "lin-chung-yen"
 featured: true
 order: 1
 ---

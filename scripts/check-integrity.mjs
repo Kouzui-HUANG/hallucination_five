@@ -75,9 +75,11 @@ for (const name of readdirSync(WORKS).filter((n) => n.endsWith('.md') && !n.star
   checkDate(file, fm, 'releasedAt');
   if (fm.thumb && !existsSync(join(WORKS, fm.thumb))) err(file, `縮圖不存在：${fm.thumb}`);
   for (const a of fm.awards ?? []) {
-    if (!a.photo) continue;
-    if (!a.photo.alt) err(file, `「${a.title}」的 photo 缺少 alt`);
-    if (!a.photo.src || !existsSync(join(WORKS, a.photo.src))) err(file, `獎項照片不存在：${a.photo.src}`);
+    for (const p of a.photos ?? []) {
+      if (!p.alt) err(file, `「${a.title}」的 photos 缺少 alt`);
+      if (!p.src || !existsSync(join(WORKS, p.src))) err(file, `獎項照片不存在：${p.src}`);
+      if (p.person && !teamIds.has(p.person)) err(file, `photos 的 person「${p.person}」不是 team 成員`);
+    }
   }
   if (!fm.videoUrl && !(fm.stills?.length > 0)) err(file, '沒有 videoUrl 時必須提供 stills');
   if (fm.videoUrl && !/^https:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\//.test(fm.videoUrl)) {

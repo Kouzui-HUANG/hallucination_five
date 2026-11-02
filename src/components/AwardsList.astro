@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { rows } = Astro.props;
-const withPhoto = rows.filter((a) => a.photo);
+const withPhoto = rows.filter((a) => a.photos?.length);
 ---
 
 <ul class="awards">
@@ -38,7 +38,8 @@ const withPhoto = rows.filter((a) => a.photo);
     <div class="aw-photos">
       {withPhoto.map((a) => (
         <AwardPhoto
-          photo={a.photo!}
+          photos={a.photos!}
+          label={a.photoLabel ?? '獎狀'}
           year={a.year}
           title={a.title}
           result={a.result}
