@@ -37,19 +37,24 @@ export const SITE = {
   themeColor: '#0e0e10',
 } as const;
 
-/** 公司登記資料（設計文件 §1-2：更名核准前，法定名稱仍是幻詠資訊有限公司） */
+/**
+ * 公司登記資料（設計文件 §1-2）
+ * 2026-11-04 改制已核准（幻詠資訊有限公司 → 幻詠資訊股份有限公司，統編不變）；
+ * 更名為幻五娛樂科技股份有限公司還在登記中。核准前，法定名稱是幻詠資訊股份有限公司。
+ */
 export const COMPANY = {
-  /** 現行登記名稱。核准後改成「幻五娛樂科技股份有限公司」 */
-  legalName: '幻詠資訊有限公司',
+  /** 現行登記名稱，要跟經濟部公示資料一字不差。更名核准後改成 newLegalName */
+  legalName: '幻詠資訊股份有限公司',
   newLegalName: '幻五娛樂科技股份有限公司',
-  /** 核准後改成 false */
+  /** 更名核准後改成 false */
   renamePending: true,
-  /** 統一編號；留空就不顯示 */
-  taxId: '',
-  /** Organization.alternateName：新舊名稱與兩個工作室的名字，讓舊名搜尋也找得到 */
+  /** 統一編號；改制與更名都沿用同一個號碼。留空就不顯示 */
+  taxId: '60561070',
+  /** Organization.alternateName：新舊名稱與兩個工作室的名字，讓舊名搜尋也找得到。舊法定名稱永久保留 */
   alternateNames: [
     '幻五娛樂科技股份有限公司',
     'HALLUCINATION FIVE',
+    '幻詠資訊股份有限公司',
     '幻詠資訊有限公司',
     '幻詠工作室',
     '幻詠 Gen Ai Studio',
@@ -59,10 +64,13 @@ export const COMPANY = {
   ],
 } as const;
 
-/** 頁尾與關於頁的公司名稱：更名期間附註原名 */
+/**
+ * 頁尾與關於頁的公司名稱。更名期間先寫公示資料查得到的現行名稱，再附註新名稱，
+ * 客戶拿這個名字或統編去查才對得上。
+ */
 export function legalNameLine(): string {
   return COMPANY.renamePending
-    ? `${COMPANY.newLegalName}（更名登記中，原${COMPANY.legalName}）`
+    ? `${COMPANY.legalName}（更名為${COMPANY.newLegalName}登記中）`
     : COMPANY.legalName;
 }
 

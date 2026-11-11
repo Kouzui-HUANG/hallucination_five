@@ -55,26 +55,24 @@ changelog:
 |---|---|---|
 | 品牌（站名） | 頁首 wordmark、`<title>`、WebSite schema `name` | 幻五娛樂 HALLUCINATION FIVE |
 | 法定名稱 | 頁尾、關於頁公司資訊、Organization `legalName` | 依登記現況，見 1-2 |
-| 舊名與別名 | 關於頁沿革、Organization `alternateName` | 幻詠資訊有限公司、幻詠工作室、幻詠 Gen Ai Studio、Hallucination Gen Ai Studio、5Y工作室、5Y Studio |
+| 舊名與別名 | 關於頁沿革、Organization `alternateName` | 幻詠資訊股份有限公司、幻詠資訊有限公司、幻詠工作室、幻詠 Gen Ai Studio、Hallucination Gen Ai Studio、5Y工作室、5Y Studio |
 
 日文頁以英文品牌開頭（「HALLUCINATION FIVE（幻五）」），法定名稱照原文顯示、不改寫成日文漢字。
 
 ### 1-2 更名期間的顯示規則
 
-有限公司改制為股份有限公司並更名，**核准之前，法定名稱仍是「幻詠資訊有限公司」**。發票、合約與頁尾的公司名稱都要跟登記一致，所以在 `site.ts` 放一個開關：
+改制與更名分兩次核准。**2026-11-04 改制已核准，法定名稱是「幻詠資訊股份有限公司」**，統一編號 60561070 沒變；更名為幻五娛樂科技股份有限公司還在登記中（2026-11 起約一個半月）。發票、合約與頁尾的公司名稱都要跟登記一致，所以在 `site.ts` 放一個開關：
 
 ```ts
 export const COMPANY = {
-  brand: '幻五娛樂',
-  brandEn: 'HALLUCINATION FIVE',
-  legalName: '幻詠資訊有限公司',            // 核准後改成 幻五娛樂科技股份有限公司
+  legalName: '幻詠資訊股份有限公司',        // 更名核准後改成 幻五娛樂科技股份有限公司
   newLegalName: '幻五娛樂科技股份有限公司',
-  renamePending: true,                     // 核准後改成 false
-  taxId: '',                               // 統一編號（待提供）
+  renamePending: true,                     // 更名核准後改成 false
+  taxId: '60561070',
 };
 ```
 
-`renamePending: true` 時，頁尾顯示「幻五娛樂科技股份有限公司（更名登記中，原幻詠資訊有限公司）・統一編號 ○○○○○○○○」；核准後只要改這一個檔。改制通常不換統一編號，實際以主管機關核准為準。
+`renamePending: true` 時，頁尾顯示「幻詠資訊股份有限公司（更名為幻五娛樂科技股份有限公司登記中）・統一編號 60561070」。現行名稱寫在前面，客戶拿頁尾的名字或統編去查公示資料才對得上。品牌（站名、`<title>`）在更名前後都是幻五娛樂，核准時只改這一個檔，不動標題，避免搜尋結果的站名換來換去。
 
 ### 1-3 名字的由來（關於頁素材）
 

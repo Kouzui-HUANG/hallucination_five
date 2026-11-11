@@ -2,9 +2,9 @@
 /** /privacy/ — 隱私權政策（P1 不裝分析工具，所以不需要 cookie 同意視窗；設計文件 §11 #9） */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHead from '../components/PageHead.astro';
-import { SITE, legalNameLine } from '../data/site';
+import { SITE, COMPANY } from '../data/site';
 
-const updated = '2026-10-28';
+const updated = '2026-11-11';
 ---
 
 <BaseLayout
@@ -16,7 +16,7 @@ const updated = '2026-10-28';
   <section class="section">
     <div class="container">
       <div class="prose">
-        <p>本政策說明{legalNameLine()}（以下稱「幻五娛樂」）的官網如何處理你的資料。最後更新：{updated.replace(/-/g, '.')}。</p>
+        <p>本政策說明{COMPANY.legalName}（以下稱「幻五娛樂」）的官網如何處理你的資料。最後更新：{updated.replace(/-/g, '.')}。</p>
 
         <h2>我們蒐集的資料</h2>
         <p>
