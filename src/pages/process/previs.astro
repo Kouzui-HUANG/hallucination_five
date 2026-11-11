@@ -1,0 +1,1045 @@
+---
+/**
+ * /process/previs/ — 製作流程 FRAME 03「3D 動態預演」的實際範例
+ * 頁首（問題）→ 預演與成片同步播放 → 怎麼做的（流程、導演台截圖、為什麼交給 AI 代理）→ 四個鏡頭 → 製作流程 → CTA
+ * 文案用客觀描述，不用第一人稱；示範片段沒有片名（專案檔名只是工作代號，不要當片名用）
+ *
+ * 影片自架在 public/media/previs/（H.264、faststart、已去除原檔 metadata），preload="none"，按下播放才下載。
+ * 劇照在 src/assets/process/previs/，從兩支影片的同一個時間點擷取。
+ * schema：VideoObject ×2
+ */
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import ProcessStrip from '../../components/ProcessStrip.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { href, routes, absRoutes, absUrl, absAsset } from '../../data/site';
+
+import cut1Previs from '../../assets/process/previs/cut1-previs.jpg';
+import cut1Final from '../../assets/process/previs/cut1-final.jpg';
+import cut2Previs from '../../assets/process/previs/cut2-previs.jpg';
+import cut2Final from '../../assets/process/previs/cut2-final.jpg';
+import cut3Previs from '../../assets/process/previs/cut3-previs.jpg';
+import cut3Final from '../../assets/process/previs/cut3-final.jpg';
+import cut4Previs from '../../assets/process/previs/cut4-previs.jpg';
+import cut4Final from '../../assets/process/previs/cut4-final.jpg';
+import ogSource from '../../assets/process/previs/og.jpg';
+import directorStage from '../../assets/process/previs/director-stage.webp';
+
+/** 示範片段的描述（沒有片名） */
+const SCENE = '台北老街的雙人走戲';
+const PREVIS_TOOL = 'Claude Opus 5.5';
+const VIDEO_TOOL = 'Seedance 2.5';
+const PUBLISHED = '2026-11-11';
+const DURATION = 15;
+
+/** 站內路徑（不含 base）：模板用 href()，schema 用 absUrl() */
+const VIDEOS = {
+  previs: '/media/previs/previs.mp4',
+  final: '/media/previs/final.mp4',
+};
+
+/** 四個鏡頭。start 是切點（秒），預演與成片的切點相差不超過一格（1/24 秒） */
+const CUTS = [
+  {
+    no: 1,
+    start: 0,
+    end: 3,
+    short: '倒退跟拍',
+    label: '倒退跟拍・中全景',
+    action: '兩人並肩朝鏡頭走來，攝影機在前方倒退跟拍。',
+    hold: '他在左、她在右，托特包掛在她靠他的那一側。',
+    previs: { src: cut1Previs, alt: '3D 預演 CUT 1：低多邊形的兩個人物並肩走在騎樓旁，橘色的他在左、藍色的她在右' },
+    final: { src: cut1Final, alt: '成片 CUT 1：穿橘色花襯衫的男生和穿米色針織外套的女生並肩走在老街騎樓旁，他在左、她在右' },
+  },
+  {
+    no: 2,
+    start: 3,
+    end: 9.65,
+    short: '跟著她走',
+    label: '長拍・跟著她走',
+    action: '他伸手靠過來，她把托特包換到另一邊肩膀，自顧自往前走。',
+    hold: '他落在左後方，兩人的距離一路拉開。',
+    previs: { src: cut2Previs, alt: '3D 預演 CUT 2：鏡頭跟著她走，她在右前方，他在左後方' },
+    final: { src: cut2Final, alt: '成片 CUT 2：她走在畫面右前方，他在左後方、焦點之外' },
+  },
+  {
+    no: 3,
+    start: 9.65,
+    end: 12.71,
+    short: '反打他',
+    label: '她肩膀旁反打他・中全景（固定）',
+    action: '他停下腳步，鏡頭從她肩膀旁反打回去看他。',
+    hold: '她的肩膀留在畫面右緣，他站在她的左邊。',
+    previs: { src: cut3Previs, alt: '3D 預演 CUT 3：從她肩膀旁看向停下腳步的他' },
+    final: { src: cut3Final, alt: '成片 CUT 3：戴墨鏡的他停在人行道上雙手扠腰，她的肩膀在畫面右緣' },
+  },
+  {
+    no: 4,
+    start: 12.71,
+    end: DURATION,
+    short: '她的臉',
+    label: '她的臉・中近景（固定）',
+    action: '鏡頭停在她的臉上。',
+    hold: '他還在左後方，退成失焦的背景；包帶在離他較遠的那一側。',
+    previs: { src: cut4Previs, alt: '3D 預演 CUT 4：她的中近景，他在左後方失焦' },
+    final: { src: cut4Final, alt: '成片 CUT 4：她抿著嘴的中近景，他在左後方失焦' },
+  },
+];
+
+/** 時間碼只取整秒（無條件捨去，和剪輯軟體的讀法一致） */
+const tc = (sec: number) => `00:${String(Math.floor(sec)).padStart(2, '0')}`;
+
+const FLOW = [
+  {
+    no: '01',
+    en: 'Plan',
+    name: '規劃',
+    tool: PREVIS_TOOL,
+    body: '在 3D 導演台裡規劃人物走位、運鏡軌跡、街景和路人。',
+  },
+  {
+    no: '02',
+    en: 'Previs',
+    name: '預演',
+    tool: '低多邊形預覽',
+    body: '先做出十五秒、四個鏡頭的低多邊形預覽，每個鏡頭都標好景別與運鏡。',
+  },
+  {
+    no: '03',
+    en: 'Generate',
+    name: '生成',
+    tool: VIDEO_TOOL,
+    body: '拿這份預覽當參考素材，生成寫實影片。',
+  },
+];
+
+/** 導演台截圖的圖說（數字以截圖右側面板為準） */
+const STAGE_LEGEND = [
+  {
+    pos: '左',
+    name: '物件庫',
+    body: '人物、路人、人群、建築等素材，點一下或拖曳就能放進場景。',
+  },
+  {
+    pos: '中',
+    name: '3D 場景',
+    body: '老街、行道樹與路人，四台攝影機的取景框標著 CUT 1–4；紅框是 CUT 1 的即時畫面。',
+  },
+  {
+    pos: '右',
+    name: '影片規格',
+    body: '15 秒、24 fps、1920×1080、白天。整個場景共 141 個物件、4 台攝影機、4 個剪輯點。',
+  },
+  {
+    pos: '下',
+    name: '時間軸',
+    body: '剪輯軌排好四個鏡頭，標記軌寫下每一段的台詞與動作。托特包是獨立物件，換肩的關鍵影格和她的動作排在同一段。',
+  },
+];
+
+/* 影片封面、og 圖與 schema 縮圖 */
+const posterPrevis = await getImage({ src: cut1Previs, width: 1280, format: 'webp', quality: 75 });
+const posterFinal = await getImage({ src: cut1Final, width: 1280, format: 'webp', quality: 75 });
+const og = await getImage({ src: ogSource, width: 1200, height: 630, format: 'jpg', quality: 80 });
+/* 截圖的字很小，另外提供原尺寸（2000px）給想看細節的人 */
+const stageFull = await getImage({ src: directorStage, width: directorStage.width, format: 'webp', quality: 85 });
+
+const pageUrl = absRoutes.process('previs');
+const title = '3D 動態預演';
+const description = `AI 影片最難的是位置連續性。幻五把一場十五秒的戲交給 ${PREVIS_TOOL} 在 3D 導演台規劃走位與運鏡，再用 ${VIDEO_TOOL} 生成寫實影片，四個鏡頭的左右站位與距離前後一致。`;
+
+const videoSchema = (id: string, name: string, desc: string, file: string, poster: string) => ({
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  '@id': `${pageUrl}#${id}`,
+  name,
+  description: desc,
+  thumbnailUrl: [absAsset(poster)],
+  uploadDate: `${PUBLISHED}T00:00:00+08:00`,
+  duration: `PT${DURATION}S`,
+  contentUrl: absUrl(file),
+  isPartOf: { '@id': `${pageUrl}#webpage` },
+  productionCompany: { '@id': absRoutes.organizationId() },
+  publisher: { '@id': absRoutes.organizationId() },
+});
+
+const schemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: `${title}｜幻五的方法`,
+    description,
+    inLanguage: 'zh-Hant-TW',
+    datePublished: PUBLISHED,
+    isPartOf: { '@id': absRoutes.websiteId() },
+    publisher: { '@id': absRoutes.organizationId() },
+    primaryImageOfPage: absAsset(og.src),
+    video: [{ '@id': `${pageUrl}#previs` }, { '@id': `${pageUrl}#final` }],
+  },
+  videoSchema(
+    'previs',
+    `3D 動態預演示範：${SCENE}（預演）`,
+    `由 ${PREVIS_TOOL} 在 3D 導演台規劃人物走位、運鏡、街景與路人的低多邊形預演，十五秒、四個鏡頭。`,
+    VIDEOS.previs,
+    posterPrevis.src,
+  ),
+  videoSchema(
+    'final',
+    `3D 動態預演示範：${SCENE}（AI 生成成片）`,
+    `以 3D 動態預演為參考素材，由 ${VIDEO_TOOL} 生成的寫實影片：一對鬧彆扭的情侶走在台北老街的騎樓旁。`,
+    VIDEOS.final,
+    posterFinal.src,
+  ),
+];
+---
+
+<BaseLayout
+  title={title}
+  seoTitle="3D 動態預演：讓 AI 影片換鏡頭不跑位"
+  description={description}
+  ogImage={og.src}
+  ogType="video.other"
+  schemas={schemas}
+  breadcrumbs={[
+    { name: '服務', item: absRoutes.services() },
+    { name: title, item: pageUrl },
+  ]}
+>
+  <PageHead
+    en="Frame 03 · Previs"
+    title={title}
+    lead="AI 影片最難控制的往往不是畫質，而是位置連續性：一換鏡頭，人就站錯邊、道具跑位、距離忽遠忽近。"
+    crumbs={[{ label: '服務', href: routes.services() }, { label: title }]}
+  >
+    <dl class="data-grid spec">
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">示範</dt>
+        <dd class="data-grid__value">{SCENE}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">長度</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{tc(DURATION)}</span>・{CUTS.length} 個鏡頭</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">3D 預演</dt>
+        <dd class="data-grid__value latin">{PREVIS_TOOL}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">影片生成</dt>
+        <dd class="data-grid__value latin">{VIDEO_TOOL}</dd>
+      </div>
+    </dl>
+  </PageHead>
+
+  <!-- ── 預演與成片 ───────────────────────── -->
+  <section class="section" aria-labelledby="ab-title">
+    <div class="container">
+      <SectionHead no="01" en="Previs × Final" title="預演與成片，同步播放" id="ab-title" />
+      <p class="intro">
+        一場十五秒的雙人戲：一對鬧彆扭的情侶，走在台北老街的騎樓旁。左邊是 {PREVIS_TOOL} 在 3D 導演台裡做出的低多邊形預演，右邊是拿這份預演當參考素材、由 {VIDEO_TOOL} 生成的寫實影片。
+      </p>
+
+      <figure class="ab" data-ab data-duration={DURATION}>
+        <div class="ab__panes">
+          <div class="ab__pane">
+            <p class="ab__label"><b>3D 預演</b><span class="latin">Previs · {PREVIS_TOOL}</span></p>
+            <div class="ab__frame">
+              <video
+                class="ab__video"
+                src={href(VIDEOS.previs)}
+                poster={posterPrevis.src}
+                width="1920"
+                height="1080"
+                preload="none"
+                muted
+                playsinline
+                controls
+                aria-label={`${SCENE}：3D 動態預演`}
+              ></video>
+            </div>
+          </div>
+          <div class="ab__pane">
+            <p class="ab__label"><b>生成成片</b><span class="latin">Final · {VIDEO_TOOL}</span></p>
+            <div class="ab__frame">
+              <video
+                class="ab__video"
+                src={href(VIDEOS.final)}
+                poster={posterFinal.src}
+                width="1280"
+                height="720"
+                preload="none"
+                muted
+                playsinline
+                controls
+                data-master
+                aria-label={`${SCENE}：AI 生成成片`}
+              ></video>
+            </div>
+          </div>
+        </div>
+
+        <div class="ab__bar" hidden>
+          <button class="ab__play" type="button" aria-pressed="false">
+            <svg class="ab__icon ab__icon--play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+              <path d="M7 4.5v15l12-7.5z" fill="currentColor"></path>
+            </svg>
+            <svg class="ab__icon ab__icon--pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+              <path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z" fill="currentColor"></path>
+            </svg>
+            <span class="ab__play-label">同步播放</span>
+          </button>
+          <p class="ab__time" aria-hidden="true"><span class="ab__now">00:00</span> / {tc(DURATION)}</p>
+          <div class="ab__timeline">
+            <span class="ab__progress" aria-hidden="true"></span>
+            <ol class="ab__cuts" aria-label="鏡頭（點選從該鏡頭播放）">
+              {
+                CUTS.map((c) => (
+                  <li style={`flex-grow: ${(c.end - c.start).toFixed(2)}`}>
+                    <button class="ab__cut" type="button" data-start={c.start}>
+                      <b>CUT {c.no}</b>
+                      <span class="ab__cut-name">{c.short}</span>
+                    </button>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+          <button class="ab__sound" type="button" aria-pressed="false">聲音：關</button>
+        </div>
+
+        <figcaption class="ab__caption">
+          預演畫面左上角標著鏡號與景別，右上角是時間碼。兩支影片同時開始播放，點時間軸上的鏡頭可以直接跳過去。
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ── 怎麼做的 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="how-title">
+    <div class="container">
+      <SectionHead no="02" en="How It Works" title="怎麼做的" id="how-title" />
+      <ol class="flow">
+        {
+          FLOW.map((f) => (
+            <li class="flow__step">
+              <span class="flow__no">{f.no}</span>
+              <p class="flow__en latin">{f.en}</p>
+              <h3 class="flow__name">{f.name}</h3>
+              <p class="flow__tool">{f.tool}</p>
+              <p class="flow__body">{f.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <figure class="stage">
+        <a class="stage__link" href={stageFull.src} target="_blank" rel="noopener">
+          <Image
+            src={directorStage}
+            alt="3D 導演台的操作畫面：左側是物件庫，中間是老街的 3D 場景與四台攝影機的取景框，右側是影片規格，下方時間軸排著四個剪輯點、標記，以及人物與托特包的關鍵影格"
+            widths={[800, 1280, 2000]}
+            sizes="(max-width: 1280px) 100vw, 1184px"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="stage__zoom">查看原尺寸 ↗</span>
+        </a>
+        <figcaption>
+          <p class="stage__title">3D 導演台的實際畫面</p>
+          <dl class="stage__legend">
+            {
+              STAGE_LEGEND.map((l) => (
+                <div class="stage__item">
+                  <dt>
+                    <span class="stage__pos">{l.pos}</span>
+                    {l.name}
+                  </dt>
+                  <dd>{l.body}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </figcaption>
+      </figure>
+
+      <div class="turn">
+        <h3 class="turn__h">為什麼交給 AI 代理</h3>
+        <div class="turn__body">
+          <p>3D 預演在影視製作裡行之有年，但搭場景、擺物件、規劃攝影機的運動路線都很費工，過去在 AI 影片的製作流程裡常被省略。</p>
+          <p>這些步驟繁瑣、但規則明確，適合交給 LLM 代理執行：人描述這場戲，代理把它搭成可以播放的預演，再交給影片模型當動態參考。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 四個鏡頭 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="cuts-title">
+    <div class="container">
+      <SectionHead no="03" en="Shot List" title="四個鏡頭，位置都對得上" id="cuts-title" />
+      <p class="intro">
+        四個鏡頭從倒退跟拍一路到他停下腳步，誰在左、誰在右、兩人隔了幾步，前後都一致，過程中沒有人工修正。
+      </p>
+
+      <ol class="cuts">
+        {
+          CUTS.map((c) => (
+            <li class="cut" id={`cut-${c.no}`}>
+              <div class="cut__meta">
+                <p class="cut__no">
+                  CUT {c.no}
+                  <span class="cut__tc">
+                    {tc(c.start)}–{tc(c.end)}
+                  </span>
+                </p>
+                <h3 class="cut__label">{c.label}</h3>
+                <p class="cut__action">{c.action}</p>
+                <p class="cut__hold">
+                  <span class="cut__hold-tag">站位</span>
+                  {c.hold}
+                </p>
+              </div>
+              <div class="cut__pair">
+                <figure class="cut__still">
+                  <Image src={c.previs.src} alt={c.previs.alt} widths={[480, 800]} sizes="(max-width: 900px) 50vw, 400px" loading="lazy" decoding="async" />
+                  <figcaption>預演</figcaption>
+                </figure>
+                <figure class="cut__still">
+                  <Image src={c.final.src} alt={c.final.alt} widths={[480, 800]} sizes="(max-width: 900px) 50vw, 400px" loading="lazy" decoding="async" />
+                  <figcaption>成片</figcaption>
+                </figure>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="note">
+        成片的三個切點落在 00:03.00、00:09.67、00:12.72，和預演的切點相差都在一格（1/24 秒）以內。
+      </p>
+    </div>
+  </section>
+
+  <!-- ── 在流程裡的位置 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead no="04" en="How We Work" title="在製作流程裡的位置" id="process-title" link={{ href: routes.services(), label: '服務總覽' }} />
+      <ProcessStrip current="03" />
+    </div>
+  </section>
+
+  <CtaBand
+    title="有一場想拍的戲？"
+    lead="告訴我們用途、片長與時程。需要複雜走位或運鏡的鏡頭，我們會先做 3D 動態預演再生成。"
+    service="commercial"
+    secondary={{ label: '短劇與影集洽詢', href: routes.contact('series') }}
+  />
+</BaseLayout>
+
+<style>
+  .spec {
+    max-width: 880px;
+    margin-top: 36px;
+  }
+  .spec dd {
+    margin: 0;
+  }
+  .intro {
+    max-width: 40em;
+    margin-bottom: 40px;
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--text-soft);
+  }
+
+  /* ── 同步對照播放器 ─────────────────────────────── */
+  .ab__panes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .ab__label {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 10px;
+  }
+  .ab__label b {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .ab__label span {
+    font-size: 11px;
+    font-weight: 600;
+    font-stretch: 112%;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ab__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .ab__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ab.is-enhanced .ab__video {
+    cursor: pointer;
+  }
+
+  .ab__bar {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--line);
+  }
+  .ab__bar[hidden] {
+    display: none;
+  }
+  .ab__play,
+  .ab__sound {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 16px;
+    font: 600 14px var(--font-cjk);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    color: var(--text);
+    cursor: pointer;
+    background: none;
+    border: 1px solid rgb(241 237 230 / 0.35);
+    border-radius: 2px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ab__play:hover,
+  .ab__sound:hover {
+    border-color: var(--text);
+  }
+  .ab__icon--pause {
+    display: none;
+  }
+  .ab.is-playing .ab__icon--play {
+    display: none;
+  }
+  .ab.is-playing .ab__icon--pause {
+    display: block;
+  }
+  .ab__sound[aria-pressed='true'] {
+    background: var(--bg-raised);
+    border-color: var(--text);
+  }
+  .ab__time {
+    font: 13px var(--font-mono);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+  .ab__now {
+    color: var(--text);
+  }
+  .ab__timeline {
+    position: relative;
+    padding-top: 4px;
+  }
+  .ab__progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--text);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .ab__timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--line);
+  }
+  .ab__cuts {
+    display: flex;
+  }
+  .ab__cuts li {
+    flex-basis: 0;
+    min-width: 0;
+  }
+  .ab__cuts li + li {
+    border-left: 1px solid var(--line);
+  }
+  .ab__cut {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 8px 10px 4px;
+    text-align: left;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    transition: color 0.2s;
+  }
+  .ab__cut b {
+    font: 600 11px var(--font-mono);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .ab__cut-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ab__cut:hover {
+    color: var(--text);
+  }
+  .ab__cut.is-active {
+    color: var(--text);
+  }
+  .ab__cut.is-active b {
+    color: var(--accent);
+  }
+  .ab__caption {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ── 怎麼做的 ─────────────────────────────── */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .flow__step {
+    position: relative;
+    padding: 28px 32px 32px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  /* 步驟之間的箭頭 */
+  .flow__step + .flow__step::before {
+    content: '→';
+    position: absolute;
+    top: 26px;
+    left: -11px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--bg);
+  }
+  .flow__no {
+    font: 12px var(--font-mono);
+    color: var(--muted);
+  }
+  .flow__en {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-stretch: 125%;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .flow__name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .flow__tool {
+    margin-top: 2px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .flow__body {
+    margin-top: 12px;
+    color: var(--text-soft);
+  }
+
+  /* 導演台截圖 */
+  .stage {
+    margin-top: 64px;
+  }
+  .stage__link {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .stage__link img {
+    width: 100%;
+    height: auto;
+  }
+  .stage__zoom {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    background: rgb(14 14 16 / 0.72);
+    border: 1px solid rgb(241 237 230 / 0.35);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .stage__link:hover .stage__zoom,
+  .stage__link:focus-visible .stage__zoom {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .stage__zoom {
+      opacity: 1;
+    }
+  }
+  .stage__title {
+    margin-top: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .stage__legend {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 14px;
+  }
+  .stage__item dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .stage__pos {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .stage__item dd {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+    gap: 32px;
+    margin-top: 64px;
+    padding: 40px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .turn__h {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .turn__body {
+    max-width: 34em;
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-weight: 600;
+    line-height: 1.8;
+  }
+  .turn__body p + p {
+    margin-top: 1em;
+  }
+
+  /* ── 四個鏡頭 ─────────────────────────────── */
+  .cuts {
+    border-top: 1px solid var(--line);
+  }
+  .cut {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 36px;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .cut__no {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    font: 600 13px var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+  .cut__tc {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .cut__label {
+    margin-top: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .cut__action {
+    margin-top: 12px;
+    color: var(--text-soft);
+  }
+  .cut__hold {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .cut__hold-tag {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 22px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .cut__pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .cut__still img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--bg-raised);
+  }
+  .cut__still figcaption {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .note {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .ab__bar {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 14px;
+    }
+    .ab__timeline {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .flow {
+      grid-template-columns: 1fr;
+    }
+    .flow__step + .flow__step::before {
+      content: '↓';
+      top: -11px;
+      left: 32px;
+    }
+    .stage__legend {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .turn {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .cut {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+  @media (max-width: 640px) {
+    .ab__panes {
+      grid-template-columns: 1fr;
+    }
+    .ab__bar {
+      padding: 12px;
+    }
+    .ab__play,
+    .ab__sound {
+      padding: 0 12px;
+    }
+    .ab__cut {
+      padding: 8px 6px 4px;
+    }
+    .ab__cut-name {
+      display: none;
+    }
+    .flow__step {
+      padding: 24px 20px 28px;
+    }
+    .stage {
+      margin-top: 48px;
+    }
+    .stage__legend {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .flow__step + .flow__step::before {
+      left: 20px;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * 同步對照播放器：以有聲音的成片（data-master）為主，預演跟著對齊。
+   * 沒有 JS 時兩支影片各自保留原生 controls；有 JS 時換成共用的播放列。
+   */
+  document.querySelectorAll<HTMLElement>('[data-ab]').forEach((root) => {
+    const vids = Array.from(root.querySelectorAll<HTMLVideoElement>('video'));
+    const master = root.querySelector<HTMLVideoElement>('video[data-master]');
+    const bar = root.querySelector<HTMLElement>('.ab__bar');
+    const playBtn = root.querySelector<HTMLButtonElement>('.ab__play');
+    const playLabel = root.querySelector<HTMLElement>('.ab__play-label');
+    const soundBtn = root.querySelector<HTMLButtonElement>('.ab__sound');
+    const now = root.querySelector<HTMLElement>('.ab__now');
+    const progress = root.querySelector<HTMLElement>('.ab__progress');
+    const cutBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.ab__cut'));
+    if (!master || !bar || !playBtn || !playLabel || !soundBtn || !now || !progress) return;
+
+    const followers = vids.filter((v) => v !== master);
+    const starts = cutBtns.map((b) => Number(b.dataset.start) || 0);
+    const fallbackDuration = Number(root.dataset.duration) || 15;
+
+    vids.forEach((v) => v.removeAttribute('controls'));
+    bar.hidden = false;
+    root.classList.add('is-enhanced');
+
+    let playing = false;
+    let holding = false;
+    let raf = 0;
+
+    const fmt = (s: number) => {
+      const t = Math.max(0, Math.floor(s));
+      return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    };
+
+    const render = () => {
+      const t = master.currentTime;
+      const dur = Number.isFinite(master.duration) && master.duration > 0 ? master.duration : fallbackDuration;
+      progress.style.transform = `scaleX(${Math.min(1, t / dur)})`;
+      now.textContent = fmt(t);
+      cutBtns.forEach((b, i) => {
+        const active = t >= starts[i] && t < (starts[i + 1] ?? Infinity);
+        b.classList.toggle('is-active', active);
+        if (active) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      });
+    };
+
+    /* 我們自己呼叫 pause() 會讓還沒完成的 play() 以 AbortError 結束，那不算失敗 */
+    const onPlayError = (e: unknown) => {
+      if ((e as DOMException)?.name !== 'AbortError') setPlaying(false);
+    };
+
+    /* rAF 負責順暢更新；timeupdate 是背景分頁（rAF 暫停）時的備援 */
+    const step = () => {
+      if (playing) {
+        // 任一支還在緩衝：已經能播的先停下來等，全部就緒再一起走，避免畫面錯開
+        const lagging = vids.some((v) => !v.ended && v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA);
+        if (lagging) {
+          holding = true;
+          vids.forEach((v) => {
+            if (v.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !v.paused) v.pause();
+          });
+        } else if (holding) {
+          holding = false;
+          vids.forEach((v) => {
+            if (v.paused && !v.ended) v.play().catch(onPlayError);
+          });
+        }
+        if (!holding) {
+          followers.forEach((v) => {
+            if (!v.seeking && !v.ended && Math.abs(v.currentTime - master.currentTime) > 0.1) {
+              v.currentTime = master.currentTime;
+            }
+          });
+        }
+      }
+      render();
+    };
+    const tick = () => {
+      step();
+      if (playing) raf = requestAnimationFrame(tick);
+    };
+
+    function setPlaying(on: boolean) {
+      playing = on;
+      holding = false;
+      root.classList.toggle('is-playing', on);
+      playBtn!.setAttribute('aria-pressed', String(on));
+      playLabel!.textContent = on ? '暫停' : '同步播放';
+      cancelAnimationFrame(raf);
+      if (on) {
+        vids.forEach((v) => v.play().catch(onPlayError));
+        raf = requestAnimationFrame(tick);
+      } else {
+        vids.forEach((v) => v.pause());
+        render();
+      }
+    }
+
+    const seek = (t: number) => {
+      vids.forEach((v) => {
+        v.currentTime = t;
+      });
+      render();
+    };
+
+    playBtn.addEventListener('click', () => setPlaying(!playing));
+    vids.forEach((v) => v.addEventListener('click', () => setPlaying(!playing)));
+
+    master.addEventListener('ended', () => {
+      setPlaying(false);
+      seek(0);
+    });
+    // 任一支緩衝完成或前進時都檢查一次，被暫停等待的那支才會被叫醒
+    vids.forEach((v) => ['timeupdate', 'canplay', 'playing'].forEach((ev) => v.addEventListener(ev, step)));
+    master.addEventListener('seeked', render);
+    master.addEventListener('loadedmetadata', render);
+
+    cutBtns.forEach((b, i) => {
+      b.addEventListener('click', () => {
+        seek(starts[i]);
+        if (!playing) setPlaying(true);
+      });
+    });
+
+    soundBtn.addEventListener('click', () => {
+      master.muted = !master.muted;
+      soundBtn.setAttribute('aria-pressed', String(!master.muted));
+      soundBtn.textContent = master.muted ? '聲音：關' : '聲音：開';
+    });
+  });
+</script>

@@ -163,7 +163,10 @@ const FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62
 const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
 
 /* 目前所在的主分區（nav 高亮；/team/ 歸在「關於」） */
-const currentSection = pathSegments[0] === 'team' ? 'about' : (pathSegments[0] ?? '');
+/* /team/ 歸在「關於」、/process/（製作流程方法頁）歸在「服務」 */
+const sectionAlias: Record<string, string> = { team: 'about', process: 'services' };
+const firstSegment = pathSegments[0] ?? '';
+const currentSection = sectionAlias[firstSegment] ?? firstSegment;
 const navIsActive = (navHref: string) => currentSection === navHref.replace(/\//g, '');
 ---
 

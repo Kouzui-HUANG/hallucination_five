@@ -82,6 +82,16 @@ export const SECTIONS = [
       note: s.summary,
     })),
   },
+  {
+    heading: '製作方法',
+    pages: [
+      {
+        path: '/process/previs/',
+        title: '3D 動態預演',
+        note: '用 Claude Opus 5.5 在 3D 導演台規劃走位與運鏡，再用 Seedance 2.5 生成寫實影片的實際範例（預演與成片對照、四個鏡頭的站位）',
+      },
+    ],
+  },
   ...(idx.team.length
     ? [
         {

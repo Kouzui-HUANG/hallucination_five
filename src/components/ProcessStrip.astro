@@ -1,20 +1,39 @@
 ---
-/** 製作流程：六格底片條（首頁與服務總覽共用） */
+/**
+ * 製作流程：六格底片條（首頁、服務總覽、方法頁共用）
+ * 有 href 的步驟會出現「看實際範例 →」；current 是目前所在方法頁的步驟編號，該格加亮、不放連結
+ */
 import { PROCESS } from '../data/services.mjs';
+import { href } from '../data/site';
+
+interface Props {
+  current?: string;
+}
+
+const { current } = Astro.props;
 ---
 
 <div class="strip-wrap" tabindex="0" role="region" aria-label="製作流程六個步驟（可左右捲動）">
   <ol class="strip">
     {
-      PROCESS.map((step) => (
-        <li class="step">
-          <span class="step__no">FRAME {step.no}</span>
-          <h3>{step.name}</h3>
-          <span class="step__en">{step.nameEn}</span>
-          <p>{step.body}</p>
-          {step.key && <span class="step__key">幻五的方法</span>}
-        </li>
-      ))
+      PROCESS.map((step) => {
+        const isCurrent = step.no === current;
+        return (
+          <li class:list={['step', isCurrent && 'is-current']} aria-current={isCurrent ? 'step' : undefined}>
+            <span class="step__no">FRAME {step.no}</span>
+            <h3>{step.name}</h3>
+            <span class="step__en">{step.nameEn}</span>
+            <p>{step.body}</p>
+            {step.key && <span class="step__key">幻五的方法</span>}
+            {step.href && !isCurrent && (
+              <a class="step__link" href={href(step.href)}>
+                {step.linkLabel ?? '看實際範例'} <span aria-hidden="true">→</span>
+                <span class="visually-hidden">：{step.name}</span>
+              </a>
+            )}
+          </li>
+        );
+      })
     }
   </ol>
 </div>
@@ -92,6 +111,25 @@ import { PROCESS } from '../data/services.mjs';
     letter-spacing: 0.1em;
     color: var(--accent);
     border: 1px solid var(--accent);
+  }
+  .step.is-current {
+    background: var(--bg-raised);
+    box-shadow: inset 0 2px 0 var(--text);
+  }
+  .step__link {
+    display: block;
+    width: fit-content;
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    border-bottom: 1px solid rgb(241 237 230 / 0.35);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .step__link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
   }
   .process-note {
     margin-top: 28px;

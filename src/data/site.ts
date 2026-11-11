@@ -114,6 +114,8 @@ export const routes = {
   service: (slug: string) => href(`/services/${slug}/`),
   about: () => href('/about/'),
   team: (slug: string) => href(`/team/${slug}/`),
+  /** 製作流程的方法頁（/process/previs/…） */
+  process: (slug: string) => href(`/process/${slug}/`),
   contact: (service?: string) => href(service ? `/contact/?service=${service}` : '/contact/'),
   privacy: () => href('/privacy/'),
 } as const;
@@ -127,6 +129,7 @@ export const absRoutes = {
   service: (slug: string) => absUrl(`/services/${slug}/`),
   about: () => absUrl('/about/'),
   team: (slug: string) => absUrl(`/team/${slug}/`),
+  process: (slug: string) => absUrl(`/process/${slug}/`),
   personId: (slug: string) => absUrl(`/team/${slug}/#person`),
   organizationId: () => `${SITE_URL}/#organization`,
   websiteId: () => `${SITE_URL}/#website`,

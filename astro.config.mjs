@@ -106,6 +106,7 @@ const STATIC_PAGES = [
   ['/about/', 'src/pages/about.astro'],
   ['/contact/', 'src/pages/contact.astro'],
   ['/privacy/', 'src/pages/privacy.astro'],
+  ['/process/previs/', 'src/pages/process/previs.astro'],
 ];
 
 function fileDate(absPath) {
