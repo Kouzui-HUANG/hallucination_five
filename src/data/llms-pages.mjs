@@ -16,10 +16,10 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const CONTENT = join(__dirname, '..', 'content');
 
 export const SITE_META = {
-  name: '幻五娛樂 HALLUCINATION FIVE',
+  name: '幻五映像 HALLUCINATION FIVE',
   url: SITE_URL,
   description:
-    '幻五娛樂（HALLUCINATION FIVE）由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，' +
+    '幻五映像（HALLUCINATION FIVE）由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，' +
     '並提供 AI 影片課程、企業內訓與 AI 導入顧問。共同創辦人為黃宏瑞與林仲彥。',
 };
 

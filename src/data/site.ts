@@ -8,12 +8,12 @@ import { SITE_ORIGIN, BASE_PATH, SITE_URL } from '../../site.config.mjs';
 import { SERVICES } from './services.mjs';
 
 export const SITE = {
-  name: '幻五娛樂',
+  name: '幻五映像',
   nameEn: 'HALLUCINATION FIVE',
   tagline: '畫面交給 AI，故事留給人。',
   /** 長版站台描述：llms.txt 開頭引言、首頁 meta、Organization schema */
   description:
-    '幻五娛樂（HALLUCINATION FIVE）由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，並提供 AI 影片課程、企業內訓與 AI 導入顧問。',
+    '幻五映像（HALLUCINATION FIVE）由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，並提供 AI 影片課程、企業內訓與 AI 導入顧問。',
   origin: SITE_ORIGIN,
   base: BASE_PATH,
   url: SITE_URL,
@@ -40,20 +40,24 @@ export const SITE = {
 /**
  * 公司登記資料（設計文件 §1-2）
  * 2026-11-04 改制已核准（幻詠資訊有限公司 → 幻詠資訊股份有限公司，統編不變）；
- * 更名為幻五娛樂科技股份有限公司還在登記中。核准前，法定名稱是幻詠資訊股份有限公司。
+ * 更名為幻五映像股份有限公司還在登記中。核准前，法定名稱是幻詠資訊股份有限公司。
  */
 export const COMPANY = {
   /** 現行登記名稱，要跟經濟部公示資料一字不差。更名核准後改成 newLegalName */
   legalName: '幻詠資訊股份有限公司',
-  newLegalName: '幻五娛樂科技股份有限公司',
+  newLegalName: '幻五映像股份有限公司',
   /** 更名核准後改成 false */
   renamePending: true,
   /** 統一編號；改制與更名都沿用同一個號碼。留空就不顯示 */
   taxId: '60561070',
-  /** Organization.alternateName：新舊名稱與兩個工作室的名字，讓舊名搜尋也找得到。舊法定名稱永久保留 */
+  /**
+   * Organization.alternateName：新舊名稱與兩個工作室的名字，讓舊名搜尋也找得到。舊法定名稱永久保留。
+   * 「幻五娛樂」是 2026-10 至 2026-11-11 用過的品牌名，保留給既有的站外提及對應。
+   */
   alternateNames: [
-    '幻五娛樂科技股份有限公司',
+    '幻五映像股份有限公司',
     'HALLUCINATION FIVE',
+    '幻五娛樂',
     '幻詠資訊股份有限公司',
     '幻詠資訊有限公司',
     '幻詠工作室',

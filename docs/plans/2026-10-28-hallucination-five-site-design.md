@@ -1,6 +1,6 @@
 ---
 id: DESIGN-H5-001
-title: 幻五娛樂 HALLUCINATION FIVE 官網 — 設計文件
+title: 幻五映像 HALLUCINATION FIVE 官網 — 設計文件
 version: v0.1
 status: draft
 created: 2026-10-28
@@ -13,18 +13,18 @@ changelog:
   - v0.3 (2026-10-28): 正式上線 https://studio.hallucination28.com/；洽詢信箱改用 ai_video@hallucination28.com（§11 #10）
 ---
 
-# 幻五娛樂 HALLUCINATION FIVE 官網 — 設計文件
+# 幻五映像 HALLUCINATION FIVE 官網 — 設計文件
 
 ## 0. 專案定位
 
-幻五娛樂科技股份有限公司的官方網站，由幻詠工作室與 5Y工作室（5Y Studio）合夥成立。網站的任務是**讓來找 AI 影像製作的人，在三分鐘內看到作品、知道能委託什麼，然後送出洽詢**。
+幻五映像股份有限公司的官方網站，由幻詠工作室與 5Y工作室（5Y Studio）合夥成立。網站的任務是**讓來找 AI 影像製作的人，在三分鐘內看到作品、知道能委託什麼，然後送出洽詢**。
 
 ### 0-1 已定案（2026-10-28 與站主確認）
 
 | 面向 | 決策 |
 |---|---|
 | 網址 | `https://studio.hallucination28.com/`（子網域，與圖鑑分站） |
-| 品牌名稱 | 中文「幻五娛樂」、英文「HALLUCINATION FIVE」；法定全名放頁尾與關於頁 |
+| 品牌名稱 | 中文「幻五映像」、英文「HALLUCINATION FIVE」；法定全名放頁尾與關於頁（2026-11-11 隨新公司名稱由「幻五娛樂」改為「幻五映像」） |
 | 兩個工作室 | **統一成幻五**：作品標導演名，「幻詠」「5Y」寫進沿革與 schema 的 `alternateName` |
 | 服務範圍 | 四項全做：商業影片製作、短劇與影集製作、課程與企業內訓、AI 導入顧問 |
 | 語言 | 繁中＋日文（繁中為預設、無前綴；日文在 `/ja/`） |
@@ -53,26 +53,26 @@ changelog:
 
 | 層級 | 用在哪裡 | 內容 |
 |---|---|---|
-| 品牌（站名） | 頁首 wordmark、`<title>`、WebSite schema `name` | 幻五娛樂 HALLUCINATION FIVE |
+| 品牌（站名） | 頁首 wordmark、`<title>`、WebSite schema `name` | 幻五映像 HALLUCINATION FIVE |
 | 法定名稱 | 頁尾、關於頁公司資訊、Organization `legalName` | 依登記現況，見 1-2 |
-| 舊名與別名 | 關於頁沿革、Organization `alternateName` | 幻詠資訊股份有限公司、幻詠資訊有限公司、幻詠工作室、幻詠 Gen Ai Studio、Hallucination Gen Ai Studio、5Y工作室、5Y Studio |
+| 舊名與別名 | 關於頁沿革、Organization `alternateName` | 幻五娛樂（2026-11-11 前的品牌名）、幻詠資訊股份有限公司、幻詠資訊有限公司、幻詠工作室、幻詠 Gen Ai Studio、Hallucination Gen Ai Studio、5Y工作室、5Y Studio |
 
 日文頁以英文品牌開頭（「HALLUCINATION FIVE（幻五）」），法定名稱照原文顯示、不改寫成日文漢字。
 
 ### 1-2 更名期間的顯示規則
 
-改制與更名分兩次核准。**2026-11-04 改制已核准，法定名稱是「幻詠資訊股份有限公司」**，統一編號 60561070 沒變；更名為幻五娛樂科技股份有限公司還在登記中（2026-11 起約一個半月）。發票、合約與頁尾的公司名稱都要跟登記一致，所以在 `site.ts` 放一個開關：
+改制與更名分兩次核准。**2026-11-04 改制已核准，法定名稱是「幻詠資訊股份有限公司」**，統一編號 60561070 沒變；更名為幻五映像股份有限公司還在登記中（2026-11 起約一個半月）。發票、合約與頁尾的公司名稱都要跟登記一致，所以在 `site.ts` 放一個開關：
 
 ```ts
 export const COMPANY = {
-  legalName: '幻詠資訊股份有限公司',        // 更名核准後改成 幻五娛樂科技股份有限公司
-  newLegalName: '幻五娛樂科技股份有限公司',
+  legalName: '幻詠資訊股份有限公司',        // 更名核准後改成 幻五映像股份有限公司
+  newLegalName: '幻五映像股份有限公司',
   renamePending: true,                     // 更名核准後改成 false
   taxId: '60561070',
 };
 ```
 
-`renamePending: true` 時，頁尾顯示「幻詠資訊股份有限公司（更名為幻五娛樂科技股份有限公司登記中）・統一編號 60561070」。現行名稱寫在前面，客戶拿頁尾的名字或統編去查公示資料才對得上。品牌（站名、`<title>`）在更名前後都是幻五娛樂，核准時只改這一個檔，不動標題，避免搜尋結果的站名換來換去。
+`renamePending: true` 時，頁尾顯示「幻詠資訊股份有限公司（更名為幻五映像股份有限公司登記中）・統一編號 60561070」。現行名稱寫在前面，客戶拿頁尾的名字或統編去查公示資料才對得上。品牌（站名、`<title>`）在更名前後都是幻五映像，核准時只改這一個檔，不動標題，避免搜尋結果的站名換來換去。
 
 ### 1-3 名字的由來（關於頁素材）
 
@@ -337,7 +337,7 @@ accent 的紀律：每個畫面最多三處。只做深色版，影像作品在�
 | 類型 | 位置 | 重點欄位 |
 |---|---|---|
 | Organization | 每頁（`#organization`） | `name`、`legalName`（§1-2）、`alternateName`（§1-1 全部舊名）、`founder`（兩個 Person @id）、`taxID`、`email`、`knowsLanguage`、`areaServed`（TW、JP）、`sameAs` |
-| WebSite | 每頁（`#website`） | `name: 幻五娛樂`、`alternateName: HALLUCINATION FIVE`、`inLanguage`。Google 的站名支援子網域層級，搜尋結果才會顯示幻五而不是圖鑑 |
+| WebSite | 每頁（`#website`） | `name: 幻五映像`、`alternateName: HALLUCINATION FIVE`、`inLanguage`。Google 的站名支援子網域層級，搜尋結果才會顯示幻五而不是圖鑑 |
 | Person | 創辦人頁（`/team/<slug>/#person`） | `jobTitle`、`worksFor`、`alumniOf`、`award`、`sameAs`（YouTube、Threads、IG、方格子／Portaly、**圖鑑條目網址**） |
 | VideoObject | 作品頁 | `thumbnailUrl`、`uploadDate`、`duration`、`embedUrl`、`director`（Person @id）、`productionCompany`（Organization @id） |
 | Service | 四個服務頁 | `serviceType`、`provider`、`areaServed`、`availableLanguage` |
@@ -358,16 +358,16 @@ accent 的紀律：每個畫面最多三處。只做深色版，影像作品在�
 
 | 語言 | 服務詞 | 品牌與人名 |
 |---|---|---|
-| 繁中 | AI 廣告製作、AI 影片製作公司、AI 短劇製作、AI MV 製作、AI 影片 企業內訓、生成式 AI 導入顧問 | 幻五娛樂、幻詠、5Y Studio、黃宏瑞、林仲彥、粽子 漫步深淵 |
+| 繁中 | AI 廣告製作、AI 影片製作公司、AI 短劇製作、AI MV 製作、AI 影片 企業內訓、生成式 AI 導入顧問 | 幻五映像、幻詠、5Y Studio、黃宏瑞、林仲彥、粽子 漫步深淵 |
 | 日文 | AI動画制作 台湾、AI広告制作、AI MV制作、生成AI 映像制作会社 | HALLUCINATION FIVE、幻五 |
 
-頁面 `<title>` 範本：`<頁名>｜幻五娛樂 HALLUCINATION FIVE`；首頁：`幻五娛樂 HALLUCINATION FIVE｜AI 廣告、MV 與短劇製作`。
+頁面 `<title>` 範本：`<頁名>｜幻五映像 HALLUCINATION FIVE`；首頁：`幻五映像 HALLUCINATION FIVE｜AI 廣告、MV 與短劇製作`。
 
 ---
 
 ## 8. 與圖鑑的關係
 
-1. **互相揭露**：圖鑑 `/about/` 補上營運者，並寫明 No.001 林仲彥、No.002 黃宏瑞是幻五娛樂的共同創辦人、條目照同一套收錄準則；官網關於頁與頁尾寫「相關計畫：台灣AI影視創作者圖鑑」
+1. **互相揭露**：圖鑑 `/about/` 補上營運者，並寫明 No.001 林仲彥、No.002 黃宏瑞是幻五映像的共同創辦人、條目照同一套收錄準則；官網關於頁與頁尾寫「相關計畫：台灣AI影視創作者圖鑑」
 2. **人物串連**：創辦人頁的 `sameAs` 放圖鑑條目網址；圖鑑兩人條目的 `sameAs.website` 目前各放方格子與 Portaly，要不要改成官網或擴充欄位，官網上線後再決定
 3. **連結節制**：只在關於頁、頁尾、創辦人頁各放一處，不在全站放關鍵字錨點
 4. **平手條款**：目前放在圖鑑的 `/tie-clause/`，建議搬到官網 `/originals/tie-clause/`（§11 #4）

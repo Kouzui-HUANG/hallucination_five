@@ -9,7 +9,7 @@ jobTitle: "共同創辦人、導演"
 tagline: "以 3D 動態預演驅動 AI 生成的導演"
 summary: "十三年 3D 與數位影像資歷，網路上以「粽子」「漫步深淵」為名。以 3D 動態預演驅動 AI 生成，主導金魚短劇兩部三十集的委製與多支商業廣告。"
 seoTitle: "林仲彥（粽子x漫步深淵）｜共同創辦人・導演"
-description: "林仲彥是幻五娛樂共同創辦人與導演。3D 與數位影像出身，以 3D 動態預演驅動 AI 生成，《粽乩：豬母夜哭》入圍 AI London Film Festival，並為金魚短劇製作兩部各 30 集的 AI 短劇。"
+description: "林仲彥是幻五映像共同創辦人與導演。3D 與數位影像出身，以 3D 動態預演驅動 AI 生成，《粽乩：豬母夜哭》入圍 AI London Film Festival，並為金魚短劇製作兩部各 30 集的 AI 短劇。"
 portrait: "./portrait.jpg"
 portraitAlt: "林仲彥的黑白形象照：戴黑框眼鏡，白襯衫搭領結與吊帶，側臉微笑"
 specialties: ["導演", "3D 動態預演", "平台短劇", "商業廣告", "AI 廣告課程"]
@@ -40,7 +40,7 @@ timeline:
   - year: "2026"
     title: "《間合》獲 GMI Cloud × Wan × DV ASIA AI 影視職人創作大賽第二名"
   - year: "2026"
-    title: "與黃宏瑞合夥成立幻五娛樂"
+    title: "與黃宏瑞合夥成立幻五映像"
 extraAwards:
   - year: 2025
     title: "Artiver AI Art Awards"
@@ -53,7 +53,7 @@ sameAs:
   threads: "https://www.threads.com/@atorias_ai"
   website: "https://portaly.cc/fantasyyen55"
   directory: "https://hallucination28.com/creator/lin-chung-yen/"
-updatedAt: "2026-11-02"
+updatedAt: "2026-11-11"
 ---
 
 ## 把 3D 動態餵給 AI

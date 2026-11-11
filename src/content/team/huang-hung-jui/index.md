@@ -8,7 +8,7 @@ jobTitle: "共同創辦人、編劇、導演"
 tagline: "從提示詞研究走進影像，角色設定先行的編劇與導演"
 summary: "台大日文系、東京大學教育學研究科碩士。從提示詞研究走進影像，以角色設定先行的動畫與日文 MV 拿下 Bouquet wiz 第一名；同時是企業 AI 導入顧問與講師。"
 seoTitle: "黃宏瑞｜共同創辦人・編劇與導演"
-description: "黃宏瑞是幻五娛樂共同創辦人、編劇與導演。台大日文系、東京大學教育學研究科碩士，以角色設定先行的 AI 動畫與日文 MV 獲 Bouquet wiz AI MV 專業賽第一名，並從事企業 AI 導入顧問與講師工作。"
+description: "黃宏瑞是幻五映像共同創辦人、編劇與導演。台大日文系、東京大學教育學研究科碩士，以角色設定先行的 AI 動畫與日文 MV 獲 Bouquet wiz AI MV 專業賽第一名，並從事企業 AI 導入顧問與講師工作。"
 portrait: "./portrait.jpg"
 portraitAlt: "黃宏瑞的形象照：深色西裝、藍白條紋領帶，雙手抱胸站在白色背景前"
 specialties: ["編劇", "日文 MV", "角色一致性", "AI 導入顧問", "中日雙語"]
@@ -38,7 +38,7 @@ timeline:
   - year: "2025"
     title: "創立幻詠資訊，全職投入 AI 生成內容"
   - year: "2026"
-    title: "與林仲彥合夥成立幻五娛樂"
+    title: "與林仲彥合夥成立幻五映像"
 extraAwards:
   - year: 2025
     title: "臺北生成藝術節 貼圖組"
@@ -54,7 +54,7 @@ sameAs:
   facebook: "https://www.facebook.com/profile.php?id=61572168475382"
   website: "https://vocus.cc/salon/hallucination"
   directory: "https://hallucination28.com/creator/huang-hung-jui/"
-updatedAt: "2026-11-02"
+updatedAt: "2026-11-11"
 ---
 
 ## 從編輯室到 AI 影像

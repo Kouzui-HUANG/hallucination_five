@@ -1,8 +1,8 @@
-# 幻五娛樂 HALLUCINATION FIVE 官網
+# 幻五映像 HALLUCINATION FIVE 官網
 
 > 畫面交給 AI，故事留給人。
 
-幻五娛樂科技股份有限公司的官方網站，正式網址 <https://studio.hallucination28.com/>。
+幻五映像股份有限公司的官方網站，正式網址 <https://studio.hallucination28.com/>。
 Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就由 GitHub Actions 自動檢查、建置並部署到 GitHub Pages。
 
 - 設計文件：[docs/plans/2026-10-28-hallucination-five-site-design.md](docs/plans/2026-10-28-hallucination-five-site-design.md)
@@ -13,7 +13,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ## 這個網站在做什麼
 
-幻五娛樂由黃宏瑞的**幻詠工作室**與林仲彥的 **5Y工作室**合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，也提供 AI 影片課程、企業內訓與 AI 導入顧問。
+幻五映像由黃宏瑞的**幻詠工作室**與林仲彥的 **5Y工作室**合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，也提供 AI 影片課程、企業內訓與 AI 導入顧問。
 
 網站只有一個任務：**讓來找 AI 影像製作的人，在三分鐘內看到作品、知道能委託什麼，然後送出洽詢。**
 
@@ -28,7 +28,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 **名字的由來**：「幻」取自幻詠，「五」取自 5Y。英文 HALLUCINATION 是生成式 AI 的「幻覺」：在 AI 圈它是要修掉的缺陷，在影像創作裡它是想像力的來源。
 
-**公司名稱**：2026-11-04 已改制為「幻詠資訊股份有限公司」（統編 60561070 不變），更名為「幻五娛樂科技股份有限公司」還在登記中。頁尾先寫公示資料查得到的現行名稱：「幻詠資訊股份有限公司（更名為幻五娛樂科技股份有限公司登記中）・統一編號 60561070」。更名核准後改 `src/data/site.ts` 的 `COMPANY`（`legalName` 換成新名、`renamePending` 改 `false`）即可全站切換。
+**公司名稱**：2026-11-04 已改制為「幻詠資訊股份有限公司」（統編 60561070 不變），更名為「幻五映像股份有限公司」還在登記中。頁尾先寫公示資料查得到的現行名稱：「幻詠資訊股份有限公司（更名為幻五映像股份有限公司登記中）・統一編號 60561070」。更名核准後改 `src/data/site.ts` 的 `COMPANY`（`legalName` 換成新名、`renamePending` 改 `false`）即可全站切換。
 
 ---
 
