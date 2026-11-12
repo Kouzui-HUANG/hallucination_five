@@ -40,7 +40,6 @@ const collectionSchema = {
   schemas={[collectionSchema]}
 >
   <PageHead
-    en="Works"
     title="作品"
     lead="廣告、MV、短劇、短片與動畫。作品頁標出導演、客戶或平台，以及能確認的主要 AI 工具。"
     crumbs={[{ label: '作品' }]}
@@ -60,7 +59,7 @@ const collectionSchema = {
           ))
         }
       </div>
-      <p class="hint">Hover to develop・滑過顯影</p>
+      <p class="hint label">滑過顯影</p>
       <div class="dev-grid" data-works>
         {works.map((w) => <DevCard work={w} />)}
       </div>
@@ -77,18 +76,20 @@ const collectionSchema = {
   .filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--space-sm);
   }
   .filter {
-    height: 38px;
-    padding: 0 16px;
-    font: 600 14px var(--font-cjk);
+    height: 44px;
+    padding: 0 var(--space-md);
+    font: 600 14px var(--font-body);
     color: var(--muted);
     cursor: pointer;
     background: none;
     border: 1px solid var(--line);
     border-radius: 2px;
-    transition: color 0.2s, border-color 0.2s;
+    transition:
+      color var(--dur-short),
+      border-color var(--dur-short);
   }
   .filter:hover {
     color: var(--text);
@@ -98,16 +99,14 @@ const collectionSchema = {
     border-color: var(--text);
   }
   .filter__count {
-    margin-left: 4px;
-    font: 12px var(--font-mono);
+    margin-left: var(--space-2xs);
+    font: 12px var(--font-latin);
+    font-variant-numeric: tabular-nums;
     color: var(--muted);
   }
+  /* 字體、字級與顏色來自 .label */
   .hint {
-    margin: 28px 0 22px;
-    font: 11px var(--font-mono);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
+    margin: 28px 0 var(--space-lg);
   }
   @media (hover: none) {
     .hint {

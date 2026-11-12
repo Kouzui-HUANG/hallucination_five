@@ -12,6 +12,7 @@ import DevCard from '../../components/DevCard.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import AwardPhoto from '../../components/AwardPhoto.astro';
 import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
 import {
   getSiteData,
   directorsOf,
@@ -67,7 +68,7 @@ const facts = [
   ...(duration ? [{ label: episodes ? '本集片長' : '片長', value: duration, mono: true }] : []),
   ...(client ? [{ label: '客戶', value: client }] : []),
   ...(platform ? [{ label: '平台', value: platform }] : []),
-  ...(tools.length ? [{ label: '主要工具', value: tools.join('・') }] : []),
+  ...(tools.length ? [{ label: '主要工具', value: tools.join('、') }] : []),
 ];
 
 const isoDur = isoDuration(durationSec);
@@ -106,7 +107,7 @@ const videoSchema = {
     { name: title, item: pageUrl },
   ]}
 >
-  <PageHead en={`${label} · ${year}`} title={title} crumbs={[{ label: '作品', href: routes.works() }, { label: title }]} />
+  <PageHead title={title} meta={[label, String(year)]} crumbs={[{ label: '作品', href: routes.works() }, { label: title }]} />
 
   <section class="section work-page">
     <div class="container">
@@ -122,7 +123,7 @@ const videoSchema = {
                   <li>
                     <span class="badge">{a.result}</span>
                     <span>
-                      {a.year} {a.title}
+                      <span class="num">{a.year}</span> {a.title}
                     </span>
                   </li>
                 ))}
@@ -148,7 +149,7 @@ const videoSchema = {
                         {c.href ? (
                           <a href={c.href} {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
                             {c.name}
-                            {c.external && ' ↗'}
+                            {c.external && <Icon name="external" size={14} />}
                           </a>
                         ) : (
                           c.name
@@ -178,9 +179,9 @@ const videoSchema = {
 
   <section class="section section--tight" aria-labelledby="related-title">
     <div class="container">
-      <SectionHead en="More Works" title="其他作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
+      <SectionHead title="其他作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
       <div class="dev-grid">
-        {[...related, ...relatedFill].map((w) => <DevCard work={w} />)}
+        {related.concat(relatedFill).map((w) => <DevCard work={w} />)}
       </div>
     </div>
   </section>
@@ -190,13 +191,13 @@ const videoSchema = {
 
 <style>
   .work-page {
-    padding-top: 40px;
+    padding-top: var(--space-xl);
   }
   .work-body {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
     gap: 56px;
-    margin-top: 40px;
+    margin-top: var(--space-xl);
   }
   .synopsis {
     font-size: 18px;
@@ -205,13 +206,13 @@ const videoSchema = {
   }
   .work-awards {
     display: grid;
-    gap: 8px;
-    margin-top: 24px;
+    gap: var(--space-xs);
+    margin-top: var(--space-lg);
   }
   .work-awards li {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 12px;
+    gap: var(--space-2xs) var(--space-sm);
     align-items: baseline;
     color: var(--muted);
   }
@@ -219,16 +220,18 @@ const videoSchema = {
     margin-left: 0;
   }
   .work-award-photo {
-    margin-top: 24px;
+    margin-top: var(--space-lg);
   }
   .credits {
-    margin-top: 40px;
+    margin-top: var(--space-xl);
   }
+  /* h2 當小標用：內文字體、標籤字級、不加字距 */
   .credits__title {
-    margin-bottom: 14px;
-    font-size: 14px;
+    margin-bottom: var(--space-md);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0;
     color: var(--muted);
   }
   .credits__list {
@@ -237,8 +240,8 @@ const videoSchema = {
   .credits__list div {
     display: grid;
     grid-template-columns: 9em minmax(0, 1fr);
-    gap: 16px;
-    padding: 12px 0;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
     border-bottom: 1px solid var(--line);
   }
   .credits__list dt {
@@ -246,7 +249,7 @@ const videoSchema = {
   }
   .credits__list a {
     font-weight: 600;
-    transition: color 0.2s;
+    transition: color var(--dur-short);
   }
   .credits__list a:hover {
     color: var(--accent);
@@ -258,7 +261,7 @@ const videoSchema = {
   @media (max-width: 900px) {
     .work-body {
       grid-template-columns: minmax(0, 1fr);
-      gap: 40px;
+      gap: var(--space-xl);
     }
   }
 </style>

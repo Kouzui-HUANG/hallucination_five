@@ -7,8 +7,8 @@ import { routes } from '../data/site';
 <BaseLayout title="找不到這一頁" description="這個網址沒有內容。可以從作品、服務或洽詢頁重新開始。" noindex>
   <section class="nf">
     <div class="container">
-      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>404 · Scene Missing</p>
       <h1 class="nf__title">這一幕，剪掉了。</h1>
+      <p class="page-head__meta label"><span class="num">404</span></p>
       <p class="nf__lead">這個網址沒有內容，可能已經移動或從來不存在。</p>
       <div class="nf__actions">
         <a class="btn btn--accent" href={routes.home()}>回到首頁</a>
@@ -21,21 +21,21 @@ import { routes } from '../data/site';
 
 <style>
   .nf {
-    padding: clamp(96px, 16vw, 200px) 0;
+    padding: clamp(var(--space-3xl), 16vw, 200px) 0;
   }
   .nf__title {
     font-size: clamp(40px, 7vw, 96px);
-    font-weight: 700;
     line-height: 1.15;
+    text-wrap: balance;
   }
   .nf__lead {
-    margin: 24px 0 40px;
+    margin: var(--space-lg) 0 var(--space-xl);
     font-size: 18px;
     color: var(--text-soft);
   }
   .nf__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: var(--space-md);
   }
 </style>

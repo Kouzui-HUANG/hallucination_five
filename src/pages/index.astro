@@ -44,7 +44,7 @@ const stats = [
       {
         reelCols.map((col) => (
           <div class="reel-col">
-            {[...col, ...col].map((w) => (
+            {col.concat(col).map((w) => (
               <Image src={w.data.thumb} alt="" width={400} quality={50} loading="lazy" decoding="async" />
             ))}
           </div>
@@ -54,14 +54,13 @@ const stats = [
     <div class="hero__veil" aria-hidden="true"></div>
 
     <div class="hero__content container">
-      <p class="eyebrow"><span class="rec" aria-hidden="true"></span>AI Film &amp; Video Production · Taipei</p>
       <h1 class="hero__title" id="hero-title">畫面交給 AI，<br />故事留給<em>人</em>。</h1>
       <p class="hero__lead">
-        幻五映像由幻詠工作室與 5Y工作室合夥成立。從品牌廣告、音樂 MV 到三十集的平台短劇，我們先把故事寫好，再讓 AI 把畫面做出來。
+        幻五映像由幻詠工作室與 5Y工作室合夥成立。從品牌廣告、音樂 MV 到<span class="nobr">三十集</span>的平台短劇，我們先把故事寫好，再讓 AI 把畫面做出來。
       </p>
       <div class="hero__cta">
         <a class="btn btn--accent" href={routes.contact()}>專案洽詢</a>
-        <a class="btn btn--ghost" href="#works">觀看作品 ↓</a>
+        <a class="btn btn--ghost" href="#works">觀看作品</a>
       </div>
       <button class="reel-toggle" type="button" aria-pressed="false">暫停背景動態</button>
     </div>
@@ -69,7 +68,7 @@ const stats = [
 
   <section class="section" id="works" aria-labelledby="works-title">
     <div class="container">
-      <SectionHead no="01" en="Selected Works" title="精選作品" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
+      <SectionHead title="精選作品" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
       <div class="works-grid">
         {leadWork && <WorkCard work={leadWork} teamById={teamById} lead />}
         {restFeatured.map((w) => <WorkCard work={w} teamById={teamById} />)}
@@ -80,7 +79,7 @@ const stats = [
           <div class="more">
             <div class="more__head">
               <h3>更多作品</h3>
-              <span class="more__hint">Hover to develop・滑過顯影</span>
+              <span class="more__hint label">滑過顯影</span>
             </div>
             <div class="dev-grid dev-grid--6">
               {moreWorks.map((w) => (
@@ -99,10 +98,7 @@ const stats = [
         {
           stats.map((s) => (
             <li class="stat">
-              <b class="stat__value">
-                {s.value}
-                {s.unit && <small>{s.unit}</small>}
-              </b>
+              <b class="stat__value f-subset">{s.value}{s.unit && <small>{s.unit}</small>}</b>
               <span class="stat__label">{s.label}</span>
               <span class="stat__note">{s.note}</span>
             </li>
@@ -114,28 +110,28 @@ const stats = [
 
   <section class="section" id="services" aria-labelledby="services-title">
     <div class="container">
-      <SectionHead no="02" en="Services" title="我們做的事" id="services-title" link={{ href: routes.services(), label: '服務總覽' }} />
+      <SectionHead title="我們做的事" id="services-title" link={{ href: routes.services(), label: '服務總覽' }} />
       <ServiceList />
     </div>
   </section>
 
   <section class="section section--tight" aria-labelledby="process-title">
     <div class="container">
-      <SectionHead no="03" en="How We Work" title="製作流程" id="process-title" />
+      <SectionHead title="製作流程" id="process-title" />
       <ProcessStrip />
     </div>
   </section>
 
   <section class="section section--tight" aria-labelledby="awards-title">
     <div class="container">
-      <SectionHead no="04" en="Awards" title="獲獎紀錄" id="awards-title" />
+      <SectionHead title="獲獎紀錄" id="awards-title" />
       <AwardsList rows={awards} />
     </div>
   </section>
 
   <section class="section section--tight" aria-labelledby="team-title">
     <div class="container">
-      <SectionHead no="05" en="Founders" title="創辦人" id="team-title" link={{ href: routes.about(), label: '關於幻五' }} />
+      <SectionHead title="創辦人" id="team-title" link={{ href: routes.about(), label: '關於幻五' }} />
       <div class="team">
         {team.map((m) => <PersonCard member={m} />)}
       </div>
@@ -167,7 +163,7 @@ const stats = [
     isolation: isolate;
     display: grid;
     align-items: end;
-    min-height: min(92vh, 880px);
+    min-height: min(92svh, 880px);
     margin-top: calc(var(--header-h) * -1);
     padding-top: var(--header-h);
     overflow: hidden;
@@ -177,14 +173,14 @@ const stats = [
     inset: -12% -6%;
     z-index: -2;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-sm);
     transform: rotate(-4deg);
   }
   .reel-col {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-sm);
   }
   .reel-col img {
     width: 100%;
@@ -214,9 +210,9 @@ const stats = [
     inset: 0;
     z-index: -1;
     background:
-      radial-gradient(55% 45% at 88% 8%, rgb(255 77 61 / 0.26), transparent 70%),
-      linear-gradient(90deg, rgb(14 14 16 / 0.9) 0%, rgb(14 14 16 / 0.55) 45%, rgb(14 14 16 / 0.15) 100%),
-      linear-gradient(180deg, rgb(14 14 16 / 0.5) 0%, transparent 35%, rgb(14 14 16 / 0.85) 82%, var(--bg) 100%);
+      radial-gradient(55% 45% at 88% 8%, var(--accent-a26), transparent 70%),
+      linear-gradient(90deg, var(--bg-a90) 0%, var(--bg-a55) 45%, var(--bg-a15) 100%),
+      linear-gradient(180deg, var(--bg-a50) 0%, transparent 35%, var(--bg-a85) 82%, var(--bg) 100%);
   }
   .hero__veil::after {
     content: '';
@@ -228,13 +224,12 @@ const stats = [
   }
   .hero__content {
     padding-top: 120px;
-    padding-bottom: clamp(64px, 11vh, 120px);
+    padding-bottom: clamp(var(--space-2xl), 11vh, 120px);
   }
   .hero__title {
     margin-bottom: 28px;
-    font-size: clamp(40px, 7.4vw, 108px);
-    font-weight: 700;
-    line-height: 1.12;
+    font-size: var(--text-display);
+    line-height: 1.15;
     letter-spacing: 0.02em;
   }
   .hero__title em {
@@ -243,14 +238,14 @@ const stats = [
   }
   .hero__lead {
     max-width: 33em;
-    margin-bottom: 38px;
+    margin-bottom: var(--space-xl);
     font-size: clamp(16px, 1.5vw, 19px);
     color: var(--text-soft);
   }
   .hero__cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: var(--space-md);
   }
   .reel-toggle {
     display: block;
@@ -281,8 +276,8 @@ const stats = [
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    gap: 16px;
-    margin-bottom: 22px;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
   }
   .more__head h3 {
     font-size: 18px;
@@ -290,10 +285,7 @@ const stats = [
     letter-spacing: 0.06em;
   }
   .more__hint {
-    font: 11px var(--font-mono);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
+    white-space: nowrap;
   }
   @media (hover: none) {
     .more__hint {
@@ -302,7 +294,7 @@ const stats = [
   }
   .dev-grid--6 {
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    column-gap: 18px;
+    column-gap: 20px;
   }
   @media (max-width: 1024px) {
     .dev-grid--6 {
@@ -334,15 +326,16 @@ const stats = [
   }
   .stat__value {
     display: block;
-    font-family: var(--font-latin);
+    font-family: var(--font-figure);
     font-stretch: 125%;
     font-size: clamp(46px, 5.2vw, 76px);
-    font-weight: 800;
+    font-weight: 900;
     line-height: 1;
     letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
   }
   .stat__value small {
-    margin-left: 6px;
+    margin-left: var(--space-xs);
     font-family: var(--font-cjk);
     font-size: 0.3em;
     font-weight: 600;
@@ -356,7 +349,7 @@ const stats = [
   }
   .stat__note {
     display: block;
-    margin-top: 2px;
+    margin-top: var(--space-3xs);
     font-size: 13px;
     color: var(--muted);
   }
@@ -368,23 +361,23 @@ const stats = [
     gap: 32px;
   }
   .partners {
-    padding: 64px 0;
+    padding: var(--space-2xl) 0;
     border-top: 1px solid var(--line);
   }
   .partners__label {
-    margin-bottom: 22px;
+    margin-bottom: var(--space-lg);
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 400;
-    letter-spacing: 0.1em;
     color: var(--muted);
   }
   .partners__list {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px 44px;
+    gap: var(--space-md) 44px;
     font-size: clamp(18px, 2vw, 24px);
     font-weight: 600;
-    color: #8f8b84;
+    color: var(--muted);
   }
 
   @media (max-width: 1024px) {
@@ -404,10 +397,10 @@ const stats = [
   }
   @media (max-width: 640px) {
     .hero__reel {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .hero__content {
-      padding-top: 96px;
+      padding-top: var(--space-3xl);
     }
     .stat,
     .stat:first-child,
@@ -416,7 +409,7 @@ const stats = [
       border-left: 0;
     }
     .stat:nth-child(even) {
-      padding-left: 16px;
+      padding-left: var(--space-md);
       border-left: 1px solid var(--line);
     }
   }

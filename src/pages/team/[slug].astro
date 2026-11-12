@@ -8,6 +8,7 @@ import { Image, getImage } from 'astro:assets';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
+import Icon from '../../components/Icon.astro';
 import DevCard from '../../components/DevCard.astro';
 import AwardsList from '../../components/AwardsList.astro';
 import CtaBand from '../../components/CtaBand.astro';
@@ -95,9 +96,12 @@ const personSchema = {
           <a href={routes.about()}>關於幻五</a><span aria-hidden="true">／</span>
           <span aria-current="page">{d.name}</span>
         </nav>
-        <p class="profile__role">{d.role}</p>
         <h1 class="profile__name">{d.name}</h1>
-        <p class="profile__en">{d.nameEn.toUpperCase()}{d.alias.length > 0 && <span>・{d.alias.join('・')}</span>}</p>
+        <p class="profile__role label">{d.role}</p>
+        <p class="profile__en label">
+          <span lang="en">{d.nameEn}</span>
+          {d.alias.map((a) => <span>{a}</span>)}
+        </p>
         <p class="profile__tagline">{d.tagline}</p>
         <ul class="tags">{d.specialties.map((s) => <li>{s}</li>)}</ul>
       </div>
@@ -113,13 +117,19 @@ const personSchema = {
         <div class="container">
           <ul class="numbers__grid">
             {d.numbers.map((n) => (
-              <li class="num">
-                <b class="num__value">
+              <li class="numbers__item">
+                <b class="num__value f-subset">
                   {n.value}
                   {n.unit && <small>{n.unit}</small>}
                 </b>
                 <span class="num__label">{n.label}</span>
-                {n.note && <span class="num__note">{n.note}</span>}
+                {n.note && (
+                  <span class="num__note">
+                    {n.note.split('・').map((part) => (
+                      <span>{part}</span>
+                    ))}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -130,7 +140,7 @@ const personSchema = {
 
   <section class="section" aria-labelledby="about-title">
     <div class="container about-grid">
-      <SectionHead en="About" title={`關於${d.name}`} id="about-title" />
+      <SectionHead title={`關於${d.name}`} id="about-title" />
       <div class="prose">
         <Content />
       </div>
@@ -141,7 +151,7 @@ const personSchema = {
     memberWorks.length > 0 && (
       <section class="section section--tight" aria-labelledby="works-title">
         <div class="container">
-          <SectionHead en="Works" title="代表作" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
+          <SectionHead title="代表作" id="works-title" link={{ href: routes.works(), label: '全部作品' }} />
           <div class="dev-grid">
             {memberWorks.map((w) => (
               <DevCard work={w} />
@@ -156,7 +166,7 @@ const personSchema = {
     memberAwards.length > 0 && (
       <section class="section section--tight" aria-labelledby="awards-title">
         <div class="container">
-          <SectionHead en="Awards" title="獲獎" id="awards-title" />
+          <SectionHead title="獲獎" id="awards-title" />
           <AwardsList rows={memberAwards} />
         </div>
       </section>
@@ -167,11 +177,11 @@ const personSchema = {
     d.timeline.length > 0 && (
       <section class="section section--tight" aria-labelledby="timeline-title">
         <div class="container">
-          <SectionHead en="Timeline" title="經歷" id="timeline-title" />
+          <SectionHead title="經歷" id="timeline-title" />
           <ol class="timeline">
             {d.timeline.map((t) => (
               <li class="timeline__item">
-                <span class="timeline__year">{t.year}</span>
+                <span class="timeline__year num">{t.year}</span>
                 <div>
                   <p class="timeline__title">{t.title}</p>
                   {t.note && <p class="timeline__note">{t.note}</p>}
@@ -188,12 +198,12 @@ const personSchema = {
     links.length > 0 && (
       <section class="section section--tight" aria-labelledby="links-title">
         <div class="container">
-          <SectionHead en="Elsewhere" title="其他連結" id="links-title" />
+          <SectionHead title="其他連結" id="links-title" />
           <ul class="links">
             {links.map((l) => (
               <li>
                 <a class="links__item" href={l.url} target="_blank" rel="noopener noreferrer">
-                  {l.label} <span aria-hidden="true">↗</span>
+                  {l.label} <Icon name="external" size={14} />
                 </a>
               </li>
             ))}
@@ -208,7 +218,7 @@ const personSchema = {
 
 <style>
   .profile {
-    padding: clamp(48px, 7vw, 96px) 0 clamp(40px, 5vw, 64px);
+    padding: clamp(48px, 7vw, var(--space-3xl)) 0 clamp(var(--space-xl), 5vw, var(--space-2xl));
     border-bottom: 1px solid var(--line);
   }
   .profile__grid {
@@ -217,34 +227,25 @@ const personSchema = {
     gap: 56px;
     align-items: end;
   }
-  .profile__role {
-    font-size: 14px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
   .profile__name {
-    margin-top: 8px;
     font-size: clamp(48px, 8vw, 112px);
-    font-weight: 700;
     line-height: 1.05;
     letter-spacing: 0.08em;
   }
-  .profile__en {
-    margin-top: 14px;
-    font-family: var(--font-latin);
-    font-stretch: 112%;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    color: var(--muted);
+  /* 職稱與羅馬拼音接在名字下方（.label），跟 PersonCard 同一個順序 */
+  .profile__role {
+    margin-top: var(--space-xs);
   }
-  .profile__en span {
-    font-family: var(--font-cjk);
-    letter-spacing: 0.06em;
+  /* 羅馬拼音與別名各自一格，不用間隔號串起來 */
+  .profile__en {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-sm);
+    margin-top: var(--space-md);
   }
   .profile__tagline {
     max-width: 30em;
-    margin: 24px 0 22px;
+    margin: var(--space-lg) 0 var(--space-lg);
     font-size: clamp(17px, 1.6vw, 20px);
     color: var(--text-soft);
   }
@@ -253,10 +254,12 @@ const personSchema = {
     overflow: hidden;
     background: var(--bg-raised);
   }
+  /* 肖像跟 PersonCard 同一種處理：黑白相紙 */
   .profile__ph img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: grayscale(1) contrast(1.05);
   }
   .numbers {
     background: var(--bg-sunken);
@@ -266,37 +269,42 @@ const personSchema = {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .num {
+  /* 格子的類名不用 .num：那是全站的數字字體 class（global.css） */
+  .numbers__item {
     padding: 44px 28px;
     border-left: 1px solid var(--line);
   }
-  .num:first-child {
+  .numbers__item:first-child {
     padding-left: 0;
     border-left: 0;
   }
   .num__value {
     display: block;
-    font-family: var(--font-latin);
+    font-family: var(--font-figure);
     font-stretch: 125%;
     font-size: clamp(36px, 4.4vw, 60px);
-    font-weight: 800;
+    font-weight: var(--display-weight);
     line-height: 1.05;
+    font-variant-numeric: tabular-nums;
   }
   .num__value small {
-    margin-left: 6px;
-    font-family: var(--font-cjk);
+    margin-left: var(--space-xs);
+    font-family: var(--font-body);
     font-size: 0.34em;
     font-weight: 600;
     color: var(--muted);
   }
   .num__label {
     display: block;
-    margin-top: 16px;
+    margin-top: var(--space-md);
     font-weight: 600;
   }
+  /* 註記裡的多個項目各自一格，不用間隔號串起來 */
   .num__note {
-    display: block;
-    margin-top: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-sm);
+    margin-top: var(--space-3xs);
     font-size: 13px;
     color: var(--muted);
   }
@@ -315,36 +323,38 @@ const personSchema = {
   .timeline__item {
     display: grid;
     grid-template-columns: 96px minmax(0, 1fr);
-    gap: 24px;
-    padding: 18px 0;
+    gap: var(--space-lg);
+    padding: 20px 0;
     border-bottom: 1px solid var(--line);
   }
   .timeline__year {
-    font: 15px var(--font-mono);
+    font-size: 15px;
     color: var(--muted);
   }
   .timeline__title {
     font-weight: 600;
   }
   .timeline__note {
-    margin-top: 2px;
+    margin-top: var(--space-3xs);
     font-size: 14px;
     color: var(--muted);
   }
   .links {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-sm);
   }
   .links__item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-xs);
     height: 44px;
-    padding: 0 18px;
+    padding: 0 20px;
     font-weight: 600;
     border: 1px solid var(--line);
-    transition: border-color 0.2s, color 0.2s;
+    transition:
+      border-color var(--dur-short),
+      color var(--dur-short);
   }
   .links__item:hover {
     color: var(--accent);
@@ -352,7 +362,7 @@ const personSchema = {
   }
   @media (max-width: 900px) {
     .profile__grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 32px;
     }
     .profile__ph {
@@ -368,17 +378,17 @@ const personSchema = {
     .numbers__grid {
       grid-template-columns: 1fr;
     }
-    .num,
-    .num:first-child {
+    .numbers__item,
+    .numbers__item:first-child {
       padding: 28px 0;
       border-left: 0;
     }
-    .num + .num {
+    .numbers__item + .numbers__item {
       border-top: 1px solid var(--line);
     }
     .timeline__item {
       grid-template-columns: 56px minmax(0, 1fr);
-      gap: 12px;
+      gap: var(--space-sm);
     }
   }
 </style>

@@ -51,7 +51,6 @@ const aboutSchema = {
   schemas={[aboutSchema]}
 >
   <PageHead
-    en="About"
     title="關於幻五"
     lead="幻五映像由幻詠工作室與 5Y工作室合夥成立。一個從文字與角色設定走進影像，一個從 3D 動態走進 AI；我們把兩套方法放在同一條製作線上。"
     crumbs={[{ label: '關於幻五' }]}
@@ -59,7 +58,7 @@ const aboutSchema = {
 
   <section class="section" aria-labelledby="name-title">
     <div class="container about-grid">
-      <SectionHead no="01" en="Our Name" title="名字的由來" id="name-title" />
+      <SectionHead title="名字的由來" id="name-title" />
       <div class="prose">
         <p>「幻」取自幻詠，「五」取自 5Y。兩個工作室的名字各留一個字，合成幻五。</p>
         <p>
@@ -71,12 +70,12 @@ const aboutSchema = {
 
   <section class="section section--tight" aria-labelledby="history-title">
     <div class="container">
-      <SectionHead no="02" en="History" title="沿革" id="history-title" />
+      <SectionHead title="沿革" id="history-title" />
       <ol class="history">
         {
           history.map((h) => (
             <li class="history__item">
-              <span class="history__year">{h.year}</span>
+              <span class="history__year num">{h.year}</span>
               <p>{h.text}</p>
             </li>
           ))
@@ -87,13 +86,12 @@ const aboutSchema = {
 
   <section class="section section--tight" aria-labelledby="beliefs-title">
     <div class="container">
-      <SectionHead no="03" en="What We Believe" title="我們相信的事" id="beliefs-title" />
+      <SectionHead title="我們相信的事" id="beliefs-title" />
       <ul class="beliefs">
         {
-          beliefs.map((b, i) => (
+          beliefs.map((b) => (
             <li class="belief">
-              <span class="belief__no">{String(i + 1).padStart(2, '0')}</span>
-              <h3>{b.title}</h3>
+              <h3 class="f-display">{b.title}</h3>
               <p>{b.body}</p>
             </li>
           ))
@@ -104,7 +102,7 @@ const aboutSchema = {
 
   <section class="section section--tight" aria-labelledby="team-title">
     <div class="container">
-      <SectionHead no="04" en="Founders" title="創辦人" id="team-title" />
+      <SectionHead title="創辦人" id="team-title" />
       <div class="team">
         {team.map((m) => <PersonCard member={m} />)}
       </div>
@@ -113,7 +111,7 @@ const aboutSchema = {
 
   <section class="section section--tight" aria-labelledby="company-title">
     <div class="container">
-      <SectionHead no="05" en="Company" title="公司資訊" id="company-title" />
+      <SectionHead title="公司資訊" id="company-title" />
       <div class="table-wrap">
         <table class="table">
           <tbody>
@@ -137,7 +135,7 @@ const aboutSchema = {
               </td>
             </tr>
             <tr><th scope="row">服務項目</th><td>商業影片製作、短劇與影集、課程與企業內訓、AI 導入顧問</td></tr>
-            <tr><th scope="row">服務地區與語言</th><td>台灣・日本／中文・日文</td></tr>
+            <tr><th scope="row">服務地區與語言</th><td>台灣、日本／中文、日文</td></tr>
             <tr>
               <th scope="row">聯絡信箱</th>
               <td><a href={`mailto:${SITE.email}`}>{SITE.email}</a></td>
@@ -150,7 +148,7 @@ const aboutSchema = {
 
   <section class="section section--tight" aria-labelledby="related-title">
     <div class="container about-grid">
-      <SectionHead no="06" en="Related" title="相關計畫" id="related-title" />
+      <SectionHead title="相關計畫" id="related-title" />
       <div class="prose">
         <p>
           創辦人黃宏瑞以個人名義主編<a href={SITE.directory.url}>「{SITE.directory.name}」</a>，收錄以 AI 工具進行影視創作的台灣創作者。
@@ -181,12 +179,12 @@ const aboutSchema = {
   .history__item {
     display: grid;
     grid-template-columns: 96px minmax(0, 1fr);
-    gap: 24px;
+    gap: var(--space-lg);
     padding: 20px 0;
     border-bottom: 1px solid var(--line);
   }
   .history__year {
-    font: 15px var(--font-mono);
+    font-size: 15px;
     color: var(--muted);
   }
   .history__item p {
@@ -203,17 +201,11 @@ const aboutSchema = {
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
-  .belief__no {
-    font: 12px var(--font-mono);
-    color: var(--muted);
-  }
   .belief h3 {
-    margin-top: 10px;
     font-size: 22px;
-    font-weight: 700;
   }
   .belief p {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
     color: var(--text-soft);
   }
   .team {
@@ -233,7 +225,7 @@ const aboutSchema = {
       gap: 32px;
     }
     .team {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
   @media (max-width: 640px) {
@@ -241,11 +233,11 @@ const aboutSchema = {
       grid-template-columns: 1fr;
     }
     .belief {
-      padding: 24px 20px;
+      padding: var(--space-lg) 20px;
     }
     .history__item {
       grid-template-columns: 56px minmax(0, 1fr);
-      gap: 12px;
+      gap: var(--space-sm);
     }
   }
 </style>

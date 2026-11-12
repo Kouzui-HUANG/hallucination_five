@@ -7,6 +7,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHead from '../components/PageHead.astro';
 import SectionHead from '../components/SectionHead.astro';
+import Icon from '../components/Icon.astro';
 import { SERVICES } from '../data/services.mjs';
 import { SITE, absRoutes, absUrl } from '../data/site';
 
@@ -39,7 +40,6 @@ const contactSchema = {
   schemas={[contactSchema]}
 >
   <PageHead
-    en="Contact"
     title="有一個想拍的故事？"
     lead="專案、內訓或顧問，都可以從這裡開始。告訴我們用途、片長與時程，我們會在兩個工作天內回覆。"
     crumbs={[{ label: '洽詢' }]}
@@ -58,12 +58,12 @@ const contactSchema = {
               height="1400"
             />
             <p class="note">
-              表單顯示不完整？<a href={SITE.contactFormUrl} target="_blank" rel="noopener noreferrer">在新分頁開啟 ↗</a>
+              表單顯示不完整？<a href={SITE.contactFormUrl} target="_blank" rel="noopener noreferrer">在新分頁開啟 <Icon name="external" size={14} /></a>
             </p>
           </div>
         ) : (
           <>
-            <SectionHead en="Email" title="寄信給我們" id="mail-title" />
+            <SectionHead title="寄信給我們" id="mail-title" />
             <p class="mail-big">
               <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
             </p>
@@ -74,7 +74,9 @@ const contactSchema = {
                   <a class="option" href={o.href}>
                     <span class="option__name">{o.name}</span>
                     <span class="option__sum">{o.summary}</span>
-                    <span class="option__arrow" aria-hidden="true">✉</span>
+                    <span class="option__arrow" aria-hidden="true">
+                      <Icon name="mail" size={16} />
+                    </span>
                   </a>
                 </li>
               ))}
@@ -87,7 +89,7 @@ const contactSchema = {
 
   <section class="section section--tight" aria-labelledby="tips-title">
     <div class="container tips-grid">
-      <SectionHead en="Before You Write" title="洽詢時請附上" id="tips-title" />
+      <SectionHead title="洽詢時請附上" id="tips-title" />
       <ul class="tips">
         <li><b>用途與受眾</b>這支影片要放在哪裡、給誰看。</li>
         <li><b>片長或集數</b>廣告秒數、MV 長度，或短劇的集數與單集長度。</li>
@@ -101,13 +103,14 @@ const contactSchema = {
 
 <style>
   .mail-big {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
     font-family: var(--font-latin);
     font-stretch: 112%;
-    font-size: clamp(24px, 4vw, 48px);
-    font-weight: 700;
+    /* 整串信箱不斷行：字級跟著螢幕寬縮（320px 寬時約 15px） */
+    font-size: clamp(15px, 4.6vw, 48px);
+    font-weight: 600;
     letter-spacing: 0.01em;
-    word-break: break-all;
+    white-space: nowrap;
   }
   .mail-big a:hover {
     color: var(--accent);
@@ -124,17 +127,17 @@ const contactSchema = {
     grid-template-columns: minmax(0, 12em) minmax(0, 1fr) 32px;
     align-items: baseline;
     gap: 20px;
-    padding: 24px 8px;
+    padding: var(--space-lg) var(--space-xs);
     border-bottom: 1px solid var(--line);
-    transition: background 0.3s, padding 0.3s;
+    transition: background-color var(--dur-short);
   }
+  /* 唯一的 hover 回饋：整列底色變亮（不位移、不變色） */
   .option:hover {
-    padding-left: 20px;
-    background: var(--bg-raised);
+    background-color: var(--bg-raised);
   }
   .option__name {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 600;
   }
   .option__sum {
     font-size: 14px;
@@ -142,9 +145,6 @@ const contactSchema = {
   }
   .option__arrow {
     color: var(--muted);
-  }
-  .option:hover .option__arrow {
-    color: var(--accent);
   }
   /* 從服務頁帶過來的服務：排到第一個並標示 */
   .options li.is-picked .option {
@@ -157,7 +157,7 @@ const contactSchema = {
     background: var(--text);
   }
   .note {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
     font-size: 14px;
     color: var(--muted);
   }
@@ -176,8 +176,8 @@ const contactSchema = {
   .tips li {
     display: grid;
     grid-template-columns: 7em minmax(0, 1fr);
-    gap: 16px;
-    padding: 16px 0;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
     color: var(--text-soft);
     border-bottom: 1px solid var(--line);
   }
@@ -187,11 +187,11 @@ const contactSchema = {
   @media (max-width: 900px) {
     .tips-grid {
       grid-template-columns: 1fr;
-      gap: 24px;
+      gap: var(--space-lg);
     }
     .option {
       grid-template-columns: minmax(0, 1fr) 24px;
-      row-gap: 4px;
+      row-gap: var(--space-2xs);
     }
     .option__sum {
       grid-column: 1;

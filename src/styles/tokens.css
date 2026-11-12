@@ -1,0 +1,97 @@
+/* ─────────────────────────────────────────────────────────────
+ * 幻五映像 HALLUCINATION FIVE — design tokens（design.md 指向這裡）
+ * 品牌三色出自 README §設計，任何改版都不動：顯影液黑、相紙白、安全燈紅。
+ * 紅色紀律：每個畫面最多三處；紅底上的字一律用 --accent-ink。
+ * 元件裡不寫色碼與字體名，一律用這裡的 token。
+ * ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── 品牌色與衍生色 ── */
+  --bg: #0e0e10; /* 顯影液黑 */
+  --bg-raised: #17171a;
+  --bg-raised-2: #1f1f23;
+  --bg-sunken: #0a0a0b;
+  --line: #2a2a2f;
+  --text: #f1ede6; /* 相紙白，對 --bg 約 16.5:1 */
+  --text-soft: #cfcac2;
+  --muted: #a19c94; /* 對 --bg 約 7.1:1 */
+  --accent: #ff4d3d; /* 安全燈紅，對 --bg 約 5.9:1 */
+  --accent-hover: #ff6a5c;
+  --accent-ink: #0e0e10; /* 紅底上的字（白字只有 3.3:1，不用） */
+
+  /* 透明度變體：遮罩、髮絲線、光暈 */
+  --text-a07: rgb(241 237 230 / 0.07);
+  --text-a35: rgb(241 237 230 / 0.35);
+  --text-a60: rgb(241 237 230 / 0.6);
+  --text-a70: rgb(241 237 230 / 0.7);
+  --bg-a15: rgb(14 14 16 / 0.15);
+  --bg-a45: rgb(14 14 16 / 0.45);
+  --bg-a50: rgb(14 14 16 / 0.5);
+  --bg-a55: rgb(14 14 16 / 0.55);
+  --bg-a72: rgb(14 14 16 / 0.72);
+  --bg-a85: rgb(14 14 16 / 0.85);
+  --bg-a90: rgb(14 14 16 / 0.9);
+  --accent-a20: rgb(255 77 61 / 0.2);
+  --accent-a26: rgb(255 77 61 / 0.26);
+
+  /* Hallmark 的角色名（sloplint 用這些檢查對比與 accent 配對） */
+  --color-paper: var(--bg);
+  --color-paper-2: var(--bg-raised);
+  --color-paper-3: var(--bg-raised-2);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-soft);
+  --color-muted: var(--muted);
+  --color-rule: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-focus: var(--accent);
+
+  /* ── 字體：標題 Noto Serif TC（建置時只取用到的字）、內文系統黑體、數字與拉丁字 Archivo ── */
+  --font-cjk: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-latin: 'Archivo', var(--font-cjk);
+  --font-display: 'Noto Serif TC', var(--font-cjk);
+  --font-figure: 'Archivo', 'Noto Serif TC', var(--font-cjk); /* 大數字：數字用 Archivo，中文（中・日、台大 × 東大）落到標題字 */
+  --font-body: var(--font-cjk);
+  --font-outlier: var(--font-latin);
+  --display-weight: 900;
+
+  /* 字級 */
+  --text-xs: 0.8125rem; /* 13px：標籤、資訊列 */
+  --text-sm: 0.875rem; /* 14px */
+  --text-md: 1rem; /* 16px：內文 */
+  --text-lead: clamp(1rem, 0.4vw + 0.9rem, 1.1875rem); /* 16–19px：導言 */
+  --text-title: clamp(1.375rem, 1.2vw + 1rem, 2.125rem); /* 22–34px：清單大字 */
+  --text-section: clamp(1.75rem, 3.2vw, 2.75rem); /* 28–44px：區塊標題 */
+  --text-page: clamp(2.125rem, 5.4vw, 4.5rem); /* 34–72px：內頁標題 */
+  --text-display-s: clamp(2.375rem, 6.2vw, 5.5rem); /* 38–88px：洽詢帶 */
+  --text-display: clamp(2.5rem, 7.4vw, 6.75rem); /* 40–108px：首頁 hero */
+
+  /* 間距（Hallmark 共用尺度；其餘間距一律落在 4px 格線上） */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 144px;
+
+  /* 版面 */
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1280px;
+  --max-prose: 760px;
+  --header-h: 68px;
+
+  /* 動態 */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-short: 200ms;
+  --dur-develop: 600ms; /* 顯影：0.6 秒 */
+
+  /* 疊放層級 */
+  --z-sticky-nav: 300;
+  --z-skip: 600;
+
+  color-scheme: dark;
+}

@@ -1,33 +1,20 @@
+/* Hallmark · shape: kept · genre: atmospheric · theme: brand · redesign: restyle
+ * paper: oklch(16.5% 0.004 286) · accent: oklch(67.1% 0.217 29) · display: Noto Serif TC 900 · body: PingFang TC (system) · hero: kept · nav: kept · footer: kept · signature: kept (thumbnails that develop from grey to colour)
+ * axes: dark/high-contrast-serif/warm · posture: kept · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S3 R4 V3 · weakest: S, the hero still shows the work grey behind a veil; a real reel is the full-depth fix, named in the handoff */
+/* Hallmark · waive 38iii · one word, once, in the hero h1 · 人 is the brand line itself: 畫面交給 AI，故事留給人 */
+/* Hallmark · dismissed 54 · each section is labelled by the h2 that the SectionHead component renders; the linter reads the component tag, not its output */
+/* Hallmark · reworded 38 headings that carried an English eyebrow or an ordinal inside them, e.g. "Selected Works 精選作品" to "精選作品" · 54 and 67 name the label; the facts moved to the line under the title (短片、2026 on a work, 製作流程第 3 步 on the previs page) */
+/* Hallmark · reworded "剪輯・配樂・交付" to "剪輯、配樂與交付" · 63 names the interpunct chaining three items */
+/* Hallmark · finish-review: subagent · 6 findings · 5 resolved 1 unresolved (layout, full depth: the award photos leave the right empty; the argument line sits at body size) · scoring round: 1 regression fixed (<wbr> beside punctuation) · gap: none */
+/* Hallmark · answered F20 · on the awards the caption takes its own row under a pair of certificates by design; a founder's page lists as many works as that founder directed */
+@import url('./tokens.css');
+
 /* ─────────────────────────────────────────────────────────────
  * 幻五映像 HALLUCINATION FIVE — global styles
- * 視覺方向：暗房（設計文件 §6）。只做深色版。
- * accent（安全燈紅）的紀律：每個畫面最多三處；紅底上的字一律用 --accent-ink
+ * 視覺方向：暗房（設計文件 §6）。只做深色版。token 在 tokens.css。
+ * 標籤只有一種樣式（.label）：內文字體、小一級、不加字距、不轉大寫。
  * ───────────────────────────────────────────────────────────── */
-
-:root {
-  --bg: #0e0e10;          /* 顯影液黑 */
-  --bg-raised: #17171a;
-  --bg-sunken: #0a0a0b;
-  --line: #2a2a2f;
-  --text: #f1ede6;        /* 相紙白，對 --bg 約 16.5:1 */
-  --text-soft: #cfcac2;
-  --muted: #a19c94;       /* 對 --bg 約 7.1:1 */
-  --accent: #ff4d3d;      /* 安全燈紅，對 --bg 約 5.9:1 */
-  --accent-hover: #ff6a5c;
-  --accent-ink: #0e0e10;  /* 紅底上的字（白字只有 3.3:1，不用） */
-
-  --font-cjk: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
-  --font-latin: 'Archivo', var(--font-cjk);
-  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-
-  --gutter: clamp(16px, 4vw, 48px);
-  --max: 1280px;
-  --max-prose: 760px;
-  --header-h: 68px;
-  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
-
-  color-scheme: dark;
-}
 
 *,
 *::before,
@@ -37,7 +24,9 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
   scroll-padding-top: var(--header-h);
+  scrollbar-color: var(--line) var(--bg);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -48,18 +37,30 @@ html {
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-cjk);
-  font-size: 16px;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
   line-height: 1.75;
-  overflow-x: hidden;
+  caret-color: var(--accent);
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* 全站三種字重：400 內文、600 強調、900 標題與大數字 */
+b,
+strong {
+  font-weight: 600;
 }
 
 img,
@@ -88,6 +89,30 @@ ol[class] {
   padding: 0;
 }
 
+/* 標題：h1、h2 與 .f-display 用 Noto Serif TC；建置時只下載用到的字（astro.config.mjs 的 display-font-subset） */
+h1,
+h2,
+.f-display {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-synthesis: none;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+/* build 後的頁面在中文詞組之間有 <wbr>（astro.config.mjs 的 phrase-breaks）：中文只在詞組邊界與標點後換行 */
+html[data-phrase-breaks] {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -105,13 +130,40 @@ ol[class] {
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
 
 .latin {
   font-family: var(--font-latin);
+}
+
+/* 數字與時間碼：Archivo 等寬數字 */
+.num {
+  font-family: var(--font-latin);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 不在中間斷開的詞組（例：三十集） */
+.nobr {
+  white-space: nowrap;
+}
+
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.15em;
+}
+
+/* ── 標籤：全站唯一的小字樣式 ─────────────────────────────── */
+.label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
+  color: var(--muted);
 }
 
 /* ── 版面 ─────────────────────────────── */
@@ -130,61 +182,38 @@ ol[class] {
   padding-top: 0;
 }
 
-/* ── 眉標、REC 點 ─────────────────────────────── */
-.eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 24px;
-  font-family: var(--font-latin);
-  font-stretch: 112%;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.rec {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .rec {
-    animation: rec 1.6s steps(1) infinite;
-  }
-}
-
-@keyframes rec {
-  50% {
-    opacity: 0.2;
-  }
-}
-
 /* ── 按鈕 ─────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-sm);
   height: 48px;
-  padding: 0 24px;
-  font-family: var(--font-cjk);
+  padding: 0 var(--space-lg);
+  font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   color: var(--text);
   background: none;
   border: 1px solid transparent;
   border-radius: 2px;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background-color var(--dur-short),
+    border-color var(--dur-short),
+    color var(--dur-short);
+}
+
+.btn:active {
+  translate: 0 1px;
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn--accent {
@@ -197,7 +226,7 @@ ol[class] {
 }
 
 .btn--ghost {
-  border-color: rgb(241 237 230 / 0.35);
+  border-color: var(--text-a35);
 }
 
 .btn--ghost:hover {
@@ -205,78 +234,62 @@ ol[class] {
 }
 
 .btn--sm {
-  height: 38px;
-  padding: 0 16px;
+  height: 44px;
+  padding: 0 var(--space-md);
   font-size: 14px;
 }
 
 .btn--lg {
-  height: 56px;
+  height: 52px;
   padding: 0 32px;
   font-size: 16px;
 }
 
-/* ── 區塊標頭 ─────────────────────────────── */
+/* ── 區塊標頭：標題本身開場，不加眉標、編號與分隔線 ─────────────────────────────── */
 .sec-head {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: end;
-  gap: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md) var(--space-lg);
   margin-bottom: 48px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--line);
-}
-
-.sec-head__no {
-  padding-bottom: 8px;
-  font: 13px/1 var(--font-mono);
-  letter-spacing: 0.1em;
-  color: var(--muted);
 }
 
 .sec-head__title {
-  font-size: clamp(28px, 3.2vw, 42px);
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: var(--text-section);
+  line-height: 1.25;
   letter-spacing: 0.04em;
 }
 
-.sec-head__en {
-  display: block;
-  margin-bottom: 10px;
-  font-family: var(--font-latin);
-  font-stretch: 125%;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .sec-head__all {
-  padding-bottom: 6px;
   font-size: 15px;
   white-space: nowrap;
   color: var(--muted);
-  transition: color 0.2s;
+  text-decoration: underline;
+  text-decoration-color: var(--text-a35);
+  text-underline-offset: 5px;
+  transition:
+    color var(--dur-short),
+    text-decoration-color var(--dur-short);
 }
 
 .sec-head__all:hover {
   color: var(--text);
+  text-decoration-color: var(--accent);
 }
 
 /* ── 內頁頁首 ─────────────────────────────── */
 .page-head {
-  padding: clamp(56px, 8vw, 104px) 0 clamp(40px, 5vw, 64px);
+  padding: clamp(56px, 8vw, 104px) 0 clamp(var(--space-xl), 5vw, var(--space-2xl));
   border-bottom: 1px solid var(--line);
 }
 
 .crumbs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs);
   margin-bottom: 32px;
-  font-size: 13px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -285,28 +298,23 @@ ol[class] {
 }
 
 .page-head__title {
-  font-size: clamp(34px, 5.4vw, 72px);
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: var(--text-page);
+  line-height: 1.2;
   letter-spacing: 0.03em;
 }
 
-.page-head__en {
-  display: block;
-  margin-bottom: 18px;
-  font-family: var(--font-latin);
-  font-stretch: 125%;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--muted);
+/* 標題下的事實列（類別、年份、流程第幾步）：原本放在標題上方的英文眉標裡 */
+.page-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-md);
+  margin-top: var(--space-md);
 }
 
 .page-head__lead {
   max-width: 40em;
-  margin-top: 24px;
-  font-size: clamp(16px, 1.5vw, 19px);
+  margin-top: var(--space-lg);
+  font-size: var(--text-lead);
   color: var(--text-soft);
 }
 
@@ -326,10 +334,12 @@ ol[class] {
   grid-row: span 2;
 }
 
+/* 縮圖上不蓋任何東西（縮圖常有片名或桂冠標章）；有影片的作品在資訊列的時間碼前標播放記號 */
 .work-card__thumb {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  color: var(--text);
   background: var(--bg-raised);
 }
 
@@ -337,91 +347,69 @@ ol[class] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.9s var(--ease-out);
 }
 
-.work-card:hover .work-card__thumb img {
-  transform: scale(1.04);
-}
-
-.work-card__play {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  padding-left: 3px;
-  font-size: 13px;
-  border-radius: 50%;
-  border: 1px solid rgb(241 237 230 / 0.6);
-  background: rgb(14 14 16 / 0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.work-card:hover .work-card__play,
-.work-card:focus-visible .work-card__play {
-  opacity: 1;
-  transform: none;
-}
-
-.meta {
-  margin-top: 16px;
-  font: 12px/1.6 var(--font-mono);
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-left: 14px;
-  font-family: var(--font-cjk);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--text);
-}
-
-.badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
+/* 唯一的 hover 回饋：片名底線轉成安全燈紅（圖片本身不動） */
 .work-card__title {
-  margin: 6px 0 4px;
+  margin-top: var(--space-md);
   font-size: 19px;
   font-weight: 600;
   line-height: 1.45;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+  transition: text-decoration-color var(--dur-short);
+}
+
+.work-card:hover .work-card__title,
+.work-card:focus-visible .work-card__title {
+  text-decoration-color: var(--accent);
 }
 
 .work-card--lead .work-card__title {
-  margin-top: 8px;
   font-size: clamp(24px, 2.4vw, 32px);
+}
+
+/* 作品資訊列：年份、類別、時間碼各自一格，不用間隔號串起來 */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-sm);
+  margin-top: var(--space-2xs);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 時間碼：有影片時前面接播放記號 */
+.meta__tc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.badge {
+  font-weight: 600;
+  color: var(--text);
 }
 
 .work-card__desc {
   max-width: 40em;
-  margin: 10px 0 12px;
+  margin: var(--space-sm) 0;
   font-size: 15px;
   color: var(--text-soft);
 }
 
 .work-card__credit {
+  margin-top: var(--space-2xs);
   font-size: 14px;
   color: var(--muted);
 }
 
-/* ── 顯影卡（設計文件 §6-4）：預設低亮度黑白，hover／focus 時 0.6 秒顯影成全彩 ── */
+/* ── 顯影卡（設計文件 §6-4）：預設黑白，hover／focus 時 0.6 秒顯影成全彩 ── */
 .dev-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -442,8 +430,8 @@ ol[class] {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(1) brightness(0.55) contrast(1.2);
-  transition: filter 0.6s ease;
+  filter: grayscale(1) brightness(0.78) contrast(1.1);
+  transition: filter var(--dur-develop) ease;
 }
 
 @media (hover: hover) {
@@ -460,26 +448,25 @@ ol[class] {
 }
 
 .dev__title {
-  margin-top: 12px;
+  margin-top: var(--space-sm);
   font-size: 15px;
   font-weight: 600;
   line-height: 1.5;
 }
 
 .dev .meta {
-  margin-top: 4px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 /* ── 標籤 ─────────────────────────────── */
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .tags li {
-  padding: 3px 10px;
+  padding: var(--space-2xs) var(--space-sm);
   font-size: 12px;
   color: var(--muted);
   border: 1px solid var(--line);
@@ -494,24 +481,26 @@ ol[class] {
 }
 
 .data-grid__cell {
-  padding: 16px 18px;
+  padding: var(--space-md) 20px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
 .data-grid__label {
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: var(--text-xs);
+  letter-spacing: 0;
   color: var(--muted);
 }
 
 .data-grid__value {
-  margin-top: 4px;
+  margin-top: var(--space-2xs);
   font-weight: 600;
 }
 
+/* 時間碼、片長等數值（類名沿用 --mono，字體改 Archivo 等寬數字） */
 .data-grid__value--mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-latin);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 內文 ─────────────────────────────── */
@@ -546,7 +535,7 @@ ol[class] {
 .prose a {
   color: var(--text);
   text-decoration: underline;
-  text-decoration-color: rgb(241 237 230 / 0.35);
+  text-decoration-color: var(--text-a35);
   text-underline-offset: 4px;
 }
 
@@ -580,7 +569,7 @@ ol[class] {
 
 .table th,
 .table td {
-  padding: 14px 16px;
+  padding: var(--space-md) var(--space-md);
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--line);
@@ -593,14 +582,20 @@ ol[class] {
   white-space: nowrap;
 }
 
-/* ── 外部連結列 ─────────────────────────────── */
+/* ── 文字連結（動詞就是標籤，不加箭頭） ─────────────────────────────── */
 .link-arrow {
   font-weight: 600;
-  transition: color 0.2s;
+  text-decoration: underline;
+  text-decoration-color: var(--text-a35);
+  text-underline-offset: 5px;
+  transition:
+    color var(--dur-short),
+    text-decoration-color var(--dur-short);
 }
 
 .link-arrow:hover {
   color: var(--accent);
+  text-decoration-color: var(--accent);
 }
 
 /* ── 響應式 ─────────────────────────────── */
@@ -620,21 +615,8 @@ ol[class] {
 }
 
 @media (max-width: 640px) {
-  .eyebrow {
-    font-size: 11px;
-    letter-spacing: 0.16em;
-  }
-
-  .sec-head {
-    grid-template-columns: 1fr auto;
-  }
-
-  .sec-head__no {
-    display: none;
-  }
-
   .works-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     row-gap: 36px;
   }
 
@@ -644,7 +626,7 @@ ol[class] {
 
   .dev-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 28px 14px;
+    gap: 28px var(--space-md);
   }
 
   .table th {
@@ -652,10 +634,14 @@ ol[class] {
   }
 }
 
+/* 減少動態：所有轉場與動畫一次結束 */
 @media (prefers-reduced-motion: reduce) {
-  .work-card__thumb img,
-  .dev__thumb img,
-  .work-card__play {
-    transition: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

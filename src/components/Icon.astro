@@ -1,0 +1,32 @@
+---
+/**
+ * 圖示：全站唯一的一套 inline SVG（取代 ▶ ✉ ↗ 這類字元圖示，它們在 Apple 裝置上會變成 emoji）。
+ * 一律 aria-hidden；需要文字說明時寫在旁邊的文字或按鈕的 aria-label。
+ */
+interface Props {
+  name: 'play' | 'mail' | 'external' | 'arrow';
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 16, class: className } = Astro.props;
+---
+
+<svg class:list={['icon', className]} viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" focusable="false">
+  {name === 'play' && <path d="M7 4.5v15l12-7.5z" fill="currentColor" />}
+  {
+    name === 'mail' && (
+      <path d="M3.5 6h17v12h-17zM3.5 6.5l8.5 7 8.5-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+    )
+  }
+  {
+    name === 'external' && (
+      <path d="M9 6h9v9M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    )
+  }
+  {
+    name === 'arrow' && (
+      <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    )
+  }
+</svg>

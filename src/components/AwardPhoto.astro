@@ -22,7 +22,7 @@ const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
     ))
   }
   <figcaption class="aw-photo__cap">
-    <span class="aw-photo__label">{label}</span>
+    <span class="aw-photo__label label">{label}</span>
     <span class="aw-photo__title">{year} {title} {result}</span>
     {workTitle && (workHref ? <a href={workHref}>《{workTitle}》</a> : <span>《{workTitle}》</span>)}
   </figcaption>
@@ -33,7 +33,7 @@ const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 16px 24px;
+    gap: var(--space-md) var(--space-lg);
   }
   .aw-photo__img {
     flex: 1 1 220px;
@@ -45,16 +45,11 @@ const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
   .aw-photo__cap {
     flex: 1 1 200px;
     display: grid;
-    gap: 4px;
+    gap: var(--space-2xs);
     color: var(--muted);
   }
   .aw-photo--multi .aw-photo__cap {
     flex-basis: 100%;
-  }
-  .aw-photo__label {
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
   }
   .aw-photo__title {
     font-weight: 600;

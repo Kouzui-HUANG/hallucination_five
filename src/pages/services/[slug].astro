@@ -10,6 +10,7 @@ import SectionHead from '../../components/SectionHead.astro';
 import DevCard from '../../components/DevCard.astro';
 import ProcessStrip from '../../components/ProcessStrip.astro';
 import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
 import { SERVICES } from '../../data/services.mjs';
 import { COURSES } from '../../data/courses.mjs';
 import { getSiteData } from '../../data/queries';
@@ -69,7 +70,6 @@ const faqSchema = {
   ]}
 >
   <PageHead
-    en={`${service.no} · ${service.nameEn}`}
     title={service.name}
     lead={service.lead}
     crumbs={[{ label: '服務', href: routes.services() }, { label: service.name }]}
@@ -79,13 +79,12 @@ const faqSchema = {
 
   <section class="section" aria-labelledby="deliver-title">
     <div class="container">
-      <SectionHead en="What We Deliver" title="交付內容" id="deliver-title" />
+      <SectionHead title="交付內容" id="deliver-title" />
       <ol class="deliver">
         {
-          service.deliverables.map((d, i) => (
+          service.deliverables.map((d) => (
             <li class="deliver__item">
-              <span class="deliver__no">{String(i + 1).padStart(2, '0')}</span>
-              <h3>{d.title}</h3>
+              <h3 class="f-display">{d.title}</h3>
               <p>{d.body}</p>
             </li>
           ))
@@ -98,23 +97,25 @@ const faqSchema = {
     courses.length > 0 && (
       <section class="section section--tight" aria-labelledby="courses-title">
         <div class="container">
-          <SectionHead en="Courses" title="公開課程" id="courses-title" />
+          <SectionHead title="公開課程" id="courses-title" />
           <ul class="courses">
             {courses.map((c) => {
               const teacher = teamById.get(c.instructor);
               return (
                 <li class="course">
-                  <p class="course__kind">
-                    {c.kind}・{c.format}
+                  <h3 class="course__title f-display">{c.title}</h3>
+                  <p class="meta">
+                    {c.kind.split('・').concat(c.format).map((part) => (
+                      <span>{part}</span>
+                    ))}
                   </p>
-                  <h3 class="course__title">{c.title}</h3>
                   {teacher && (
                     <p class="course__teacher">
                       講師 <a href={routes.team(teacher.id)}>{teacher.data.name}</a>
                     </p>
                   )}
                   <a class="btn btn--ghost btn--sm" href={c.url} target="_blank" rel="noopener noreferrer">
-                    課程介紹與報名 ↗
+                    課程介紹與報名 <Icon name="external" size={14} />
                   </a>
                 </li>
               );
@@ -130,7 +131,7 @@ const faqSchema = {
     related.length > 0 && (
       <section class="section section--tight" aria-labelledby="related-title">
         <div class="container">
-          <SectionHead en="Related Works" title="相關作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
+          <SectionHead title="相關作品" id="related-title" link={{ href: routes.works(), label: '全部作品' }} />
           <div class="dev-grid">
             {related.map((w) => (
               <DevCard work={w} />
@@ -145,7 +146,7 @@ const faqSchema = {
     showProcess && (
       <section class="section section--tight" aria-labelledby="process-title">
         <div class="container">
-          <SectionHead en="How We Work" title="製作流程" id="process-title" />
+          <SectionHead title="製作流程" id="process-title" />
           <ProcessStrip />
         </div>
       </section>
@@ -154,7 +155,7 @@ const faqSchema = {
 
   <section class="section section--tight" aria-labelledby="faq-title">
     <div class="container">
-      <SectionHead en="FAQ" title="常見問題" id="faq-title" />
+      <SectionHead title="常見問題" id="faq-title" />
       <div class="faq">
         {
           service.faq.map((f) => (
@@ -171,16 +172,14 @@ const faqSchema = {
 
   <section class="section section--tight" aria-labelledby="others-title">
     <div class="container">
-      <SectionHead en="Other Services" title="其他服務" id="others-title" />
+      <SectionHead title="其他服務" id="others-title" />
       <ul class="others">
         {
           others.map((s) => (
             <li>
               <a class="others__link" href={routes.service(s.slug)}>
-                <span class="others__no">{s.no}</span>
                 <span class="others__name">{s.name}</span>
                 <span class="others__sum">{s.summary}</span>
-                <span aria-hidden="true">→</span>
               </a>
             </li>
           ))
@@ -196,15 +195,15 @@ const faqSchema = {
   .for-who {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-sm);
     margin-top: 28px;
     color: var(--text-soft);
   }
   .for-who span {
-    padding: 0 10px;
-    font-size: 12px;
+    padding: 0 var(--space-sm);
+    font-size: var(--text-xs);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0;
     line-height: 26px;
     color: var(--muted);
     border: 1px solid var(--line);
@@ -220,17 +219,12 @@ const faqSchema = {
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
-  .deliver__no {
-    font: 12px var(--font-mono);
-    color: var(--muted);
-  }
   .deliver__item h3 {
-    margin-top: 10px;
+    margin-top: var(--space-sm);
     font-size: 22px;
-    font-weight: 700;
   }
   .deliver__item p {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
     color: var(--text-soft);
   }
   .courses {
@@ -242,22 +236,16 @@ const faqSchema = {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: var(--space-sm);
     padding: 28px;
     background: var(--bg-raised);
     border: 1px solid var(--line);
   }
-  .course__kind {
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-  }
   .course__title {
     font-size: 22px;
-    font-weight: 700;
   }
   .course__teacher {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-xs);
     color: var(--text-soft);
   }
   .course__teacher a {
@@ -286,7 +274,7 @@ const faqSchema = {
   }
   .faq__q {
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.6;
   }
   .faq__a {
@@ -297,23 +285,19 @@ const faqSchema = {
   }
   .others__link {
     display: grid;
-    grid-template-columns: 44px minmax(0, 14em) minmax(0, 1fr) 24px;
+    grid-template-columns: minmax(0, 14em) minmax(0, 1fr);
     align-items: baseline;
     gap: 20px;
-    padding: 22px 0;
+    padding: var(--space-lg) 0;
     border-bottom: 1px solid var(--line);
-    transition: color 0.2s;
+    transition: color var(--dur-short);
   }
   .others__link:hover {
     color: var(--accent);
   }
-  .others__no {
-    font: 13px var(--font-mono);
-    color: var(--muted);
-  }
   .others__name {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 600;
   }
   .others__sum {
     font-size: 14px;
@@ -325,19 +309,15 @@ const faqSchema = {
     }
     .faq__item {
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: var(--space-sm);
     }
     .others__link {
-      grid-template-columns: 36px minmax(0, 1fr) 20px;
-    }
-    .others__sum {
-      grid-column: 2;
-      grid-row: 2;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
   @media (max-width: 640px) {
     .deliver__item {
-      padding: 24px 20px 28px;
+      padding: var(--space-lg) 20px 28px;
     }
   }
 </style>

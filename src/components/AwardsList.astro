@@ -16,7 +16,7 @@ const withPhoto = rows.filter((a) => a.photos?.length);
   {
     rows.map((a) => (
       <li class="aw">
-        <span class="aw__year">{a.year}</span>
+        <span class="aw__year num">{a.year}</span>
         <span class="aw__event">{a.title}</span>
         <span class:list={['aw__result', a.winner && 'is-winner']}>{a.result}</span>
         <span class="aw__work">
@@ -65,27 +65,29 @@ const withPhoto = rows.filter((a) => a.photos?.length);
     display: grid;
     grid-template-columns: 72px minmax(0, 2fr) 110px minmax(0, 1.3fr);
     align-items: baseline;
-    gap: 24px;
-    padding: 22px 0;
+    gap: var(--space-lg);
+    padding: var(--space-lg) 0;
     border-bottom: 1px solid var(--line);
   }
   .aw__year {
-    font: 14px var(--font-mono);
+    font-size: 14px;
     color: var(--muted);
   }
   .aw__event {
     font-weight: 600;
   }
   .aw__result {
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     color: var(--text-soft);
   }
   .aw__result.is-winner {
     color: var(--text);
   }
+  /* 長片名（含日文）在窄欄裡兩行排平，不讓「歌～》」單獨落在最後一行 */
   .aw__work {
     color: var(--muted);
+    text-wrap: balance;
   }
   .aw__work a {
     transition: color 0.2s;
@@ -96,7 +98,7 @@ const withPhoto = rows.filter((a) => a.photos?.length);
   @media (max-width: 640px) {
     .aw {
       grid-template-columns: 52px minmax(0, 1fr);
-      row-gap: 2px;
+      row-gap: var(--space-3xs);
     }
     .aw__result,
     .aw__work {

@@ -1,9 +1,10 @@
 ---
 /**
  * 作品卡（全彩）。lead＝首頁精選的大卡，多一段劇情簡介。
- * 獲獎徽章放在 metadata 行，不蓋在縮圖上（縮圖常有片名或桂冠標章）。
+ * 片名在前、資訊列在後；獲獎徽章放在資訊列，不蓋在縮圖上（縮圖常有片名或桂冠標章）。
  */
 import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
 import { routes } from '../data/site';
 import { categoryLabel } from '../data/categories';
 import { directorsOf, workMetaParts, type Member, type Work } from '../data/queries';
@@ -18,7 +19,13 @@ interface Props {
 const { work, teamById, lead = false, eager = false } = Astro.props;
 const { title, slug, thumb, thumbAlt, synopsis, awards, client, platform, credits } = work.data;
 
-const meta = workMetaParts(work, categoryLabel).join('・');
+/* 年份與時間碼用 Archivo 等寬數字，其餘（類別、全 N 集）用內文字體；有影片的作品在時間碼前標播放記號 */
+const hasVideo = Boolean(work.data.videoUrl);
+const metaParts = workMetaParts(work, categoryLabel).map((text) => ({
+  text,
+  num: /^[\d:]+$/.test(text),
+  tc: /^\d{1,2}:\d{2}(:\d{2})?$/.test(text),
+}));
 const award = awards[0];
 const directors = directorsOf(work, teamById).map((m) => m.data.name).join('・');
 const external = credits.filter((c) => !c.team && c.name).map((c) => c.name);
@@ -39,10 +46,19 @@ const creditParts = [
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
     />
-    <span class="work-card__play" aria-hidden="true">▶</span>
   </div>
-  <p class="meta">{meta}{award && <span class="badge">{award.result}</span>}</p>
   <h3 class="work-card__title">{title}</h3>
+  <p class="meta">
+    {
+      metaParts.map((p) => (
+        <span class:list={[p.num && 'num', p.tc && 'meta__tc']}>
+          {p.tc && hasVideo && <Icon name="play" size={10} />}
+          {p.text}
+        </span>
+      ))
+    }
+    {award && <span class="badge">{award.result}</span>}
+  </p>
   {lead && <p class="work-card__desc">{synopsis}</p>}
   <p class="work-card__credit">{creditParts.join('｜')}</p>
 </a>

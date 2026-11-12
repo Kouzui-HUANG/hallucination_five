@@ -1,7 +1,7 @@
 ---
 /**
- * 製作流程：六格底片條（首頁、服務總覽、方法頁共用）
- * 有 href 的步驟會出現「看實際範例 →」；current 是目前所在方法頁的步驟編號，該格加亮、不放連結
+ * 製作流程：六格流程條（首頁、服務總覽、方法頁共用）
+ * 有 href 的步驟會出現「看實際範例」連結；current 是目前所在方法頁的步驟編號，該格加亮、不放連結
  */
 import { PROCESS } from '../data/services.mjs';
 import { href } from '../data/site';
@@ -20,14 +20,13 @@ const { current } = Astro.props;
         const isCurrent = step.no === current;
         return (
           <li class:list={['step', isCurrent && 'is-current']} aria-current={isCurrent ? 'step' : undefined}>
-            <span class="step__no">FRAME {step.no}</span>
+            <span class="step__no num">{step.no}</span>
             <h3>{step.name}</h3>
-            <span class="step__en">{step.nameEn}</span>
             <p>{step.body}</p>
             {step.key && <span class="step__key">幻五的方法</span>}
             {step.href && !isCurrent && (
               <a class="step__link" href={href(step.href)}>
-                {step.linkLabel ?? '看實際範例'} <span aria-hidden="true">→</span>
+                {step.linkLabel ?? '看實際範例'}
                 <span class="visually-hidden">：{step.name}</span>
               </a>
             )}
@@ -50,28 +49,12 @@ const { current } = Astro.props;
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     min-width: 1100px;
-    padding: 34px 0;
+    padding: 36px 0;
     background: var(--bg-sunken);
     border-block: 1px solid var(--line);
   }
-  /* 上下兩排齒孔 */
-  .strip::before,
-  .strip::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: repeating-linear-gradient(90deg, transparent 0 12px, rgb(241 237 230 / 0.13) 12px 24px);
-  }
-  .strip::before {
-    top: 10px;
-  }
-  .strip::after {
-    bottom: 10px;
-  }
   .step {
-    padding: 22px 24px 18px;
+    padding: var(--space-lg) var(--space-lg) 20px;
     border-left: 1px solid var(--line);
     scroll-snap-align: start;
   }
@@ -79,36 +62,26 @@ const { current } = Astro.props;
     border-left: 0;
   }
   .step__no {
-    font: 12px var(--font-mono);
-    letter-spacing: 0.1em;
+    font-size: var(--text-xs);
     color: var(--muted);
   }
   .step h3 {
-    margin-top: 12px;
+    margin-top: var(--space-xs);
     font-size: 18px;
-    font-weight: 700;
-  }
-  .step__en {
-    font-family: var(--font-latin);
-    font-stretch: 125%;
-    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.26em;
-    color: var(--muted);
   }
   .step p {
-    margin-top: 12px;
+    margin-top: var(--space-sm);
     font-size: 14px;
     line-height: 1.8;
     color: var(--muted);
   }
   .step__key {
     display: inline-block;
-    margin-top: 14px;
-    padding: 2px 8px;
-    font-size: 11px;
+    margin-top: var(--space-md);
+    padding: var(--space-3xs) var(--space-xs);
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.1em;
     color: var(--accent);
     border: 1px solid var(--accent);
   }
@@ -119,12 +92,11 @@ const { current } = Astro.props;
   .step__link {
     display: block;
     width: fit-content;
-    margin-top: 14px;
+    margin-top: var(--space-md);
     font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.06em;
     color: var(--text);
-    border-bottom: 1px solid rgb(241 237 230 / 0.35);
+    border-bottom: 1px solid var(--text-a35);
     transition: color 0.2s, border-color 0.2s;
   }
   .step__link:hover {

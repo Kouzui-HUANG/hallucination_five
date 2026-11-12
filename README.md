@@ -45,7 +45,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 | `/works/<slug>/` | 作品頁：影片、片長、導演、製作名單、使用工具、獲獎（12 頁） |
 | `/services/` | 服務總覽與製作流程 |
 | `/services/<slug>/` | 單項服務：適合誰、交付內容、相關作品（商業、短劇）或課程（內訓）、常見問題（4 頁） |
-| `/process/previs/` | 製作流程 FRAME 03「3D 動態預演」的實際範例：預演與成片同步播放、怎麼做的、四個鏡頭的站位對照。影片在 `public/media/previs/`，劇照在 `src/assets/process/previs/`；流程底片條有 `href` 的步驟會出現「看實際範例 →」 |
+| `/process/previs/` | 製作流程 FRAME 03「3D 動態預演」的實際範例：預演與成片同步播放、怎麼做的、四個鏡頭的站位對照。影片在 `public/media/previs/`，劇照在 `src/assets/process/previs/`；流程條上有 `href` 的步驟會出現「看實際範例」連結 |
 | `/about/` | 名字的由來、沿革、我們相信的事、創辦人、公司資訊、相關計畫 |
 | `/team/<slug>/` | 創辦人頁：數字、專長、時間軸、作品與獲獎（2 頁） |
 | `/contact/` | 洽詢：依服務分類的 Email 範本（預填主旨與欄位）；`?service=<slug>` 會把該服務排在第一個 |
@@ -73,7 +73,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 3. **3D 動態預演** PREVIS ★：用輕量 3D 搭出鏡頭運動與角色走位，當成生成的動態參考
 4. **角色與場景設定** DESIGN ★：先做角色設定表與場景美術，鎖住整部片的一致性
 5. **生成與篩選** GENERATE：每一格畫面都由人挑選、重生成與調整
-6. **剪輯・配樂・交付** FINISH：剪輯、配樂、字幕與調色，依平台規格交付
+6. **剪輯、配樂與交付** FINISH：剪輯、配樂、字幕與調色，依平台規格交付
 
 ### 作品（12 件）
 
@@ -129,12 +129,14 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 視覺隱喻是**暗房與放映**，刻意和圖鑑（年鑑、報紙）區隔：
 
 - **色彩**：只做深色版。底色「顯影液黑」`#0e0e10`、文字「相紙白」`#f1ede6`、accent「安全燈紅」`#ff4d3d`。紅色每個畫面最多三處，紅底上的字一律用黑色（白字對比不足）
-- **字體**：拉丁字用 Archivo 可變字體（Google Fonts），中文用系統黑體，不載中文網路字型。片長一律寫成時間碼（`08:29`）
+- **字體**：標題（h1、h2）用思源宋體 Noto Serif TC 900，build 時只下載標題用到的字（約 60 KB，見 `astro.config.mjs` 的 `display-font-subset`）；內文用系統黑體，不載整套中文網路字型；數字、時間碼與拉丁字用 Archivo 可變字體。片長一律寫成時間碼（`08:29`）
+- **標籤**：只有一種小字樣式（`.label`：內文字體、13px、不加字距、不轉大寫）。不用英文大寫眉標、區塊編號，連結文字後面不接箭頭（Hallmark 規則，見根目錄的 `design.md`）
+- **中文斷行**：build 時在詞組之間插入 `<wbr>`（BudouX 與 ICU 詞典都同意的位置），配合 `word-break: keep-all`，中文不會斷成「片／長」「主題／曲」
 - **顯影互動**：作品格網的縮圖預設是低亮度黑白，滑鼠移上或鍵盤聚焦時 0.6 秒內顯影成全彩，像相紙在顯影液裡浮出影像，也像 AI 從雜訊裡生成畫面。只在可 hover 的裝置啟用
 - **無障礙**：Hero 動態有暫停鈕、`prefers-reduced-motion` 時取消動態、跳至主要內容連結、明顯的 `:focus-visible`、對比 AA 以上
 - **影片**：YouTube 一律用 lite facade，按下播放才載入 `youtube-nocookie.com` 的 iframe
 
-色彩與字體 token 在 `src/styles/global.css` 的 `:root`。
+色彩、字體、字級與間距 token 在 `src/styles/tokens.css`；設計規則鎖在根目錄的 `design.md`。
 
 ---
 
@@ -153,7 +155,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 |---|---|
 | 框架 | Astro 6（`output: 'static'`） |
 | Node | 22.12.0 以上（`.node-version`） |
-| 依賴 | `@astrojs/sitemap`、`sharp`（圖片與品牌資產）、`js-yaml`（Node 端讀 frontmatter） |
+| 依賴 | `@astrojs/sitemap`、`sharp`（圖片與品牌資產）、`js-yaml`（Node 端讀 frontmatter）、`budoux`（build 時的中文詞組斷行） |
 | 內容 | Astro Content Collections：`works`、`team`，schema 用 zod 驗證 |
 | 部署 | GitHub Actions → GitHub Pages，自訂網域 `studio.hallucination28.com` |
 | 分析工具 | 沒有，所以不需要 cookie 同意視窗 |
@@ -165,6 +167,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 ├── .github/workflows/deploy.yml   # push main → 內容檢查 → 建置 → 部署
 ├── astro.config.mjs               # sitemap lastmod、llms.txt integration
 ├── site.config.mjs                # SITE_ORIGIN / BASE_PATH 的單一真相來源
+├── design.md                      # 鎖定的設計系統（Hallmark 每次執行先讀）
 ├── docs/                          # 設計文件與首頁 mockup
 ├── public/                        # CNAME、favicon、logo、OG 預設圖
 ├── scripts/
@@ -186,7 +189,9 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
     ├── components/                # WorkCard、DevCard、VideoFacade、AwardsList…
     ├── layouts/BaseLayout.astro   # <head>、全站 JSON-LD、header、footer
     ├── pages/                     # 路由
-    └── styles/global.css          # 色彩與字體 token
+    └── styles/
+        ├── tokens.css             # 色彩、字體、字級、間距 token
+        └── global.css             # 全站樣式（第一行是 Hallmark 的設計紀錄）
 ```
 
 ### 資料流

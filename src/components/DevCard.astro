@@ -1,5 +1,5 @@
 ---
-/** 顯影卡：低亮度黑白，hover／鍵盤聚焦時顯影成全彩（設計文件 §6-4） */
+/** 顯影卡：黑白，hover／鍵盤聚焦時顯影成全彩（設計文件 §6-4） */
 import { Image } from 'astro:assets';
 import { routes } from '../data/site';
 import { categoryLabel } from '../data/categories';
@@ -11,7 +11,8 @@ interface Props {
 
 const { work } = Astro.props;
 const { title, slug, thumb, thumbAlt, awards } = work.data;
-const meta = workMetaParts(work, categoryLabel).join('・');
+/* 年份與時間碼用 Archivo 等寬數字，其餘用內文字體 */
+const metaParts = workMetaParts(work, categoryLabel).map((text) => ({ text, num: /^[\d:]+$/.test(text) }));
 const award = awards[0];
 ---
 
@@ -20,5 +21,8 @@ const award = awards[0];
     <Image src={thumb} alt={thumbAlt} widths={[400, 640]} sizes="(max-width: 640px) 50vw, 300px" loading="lazy" decoding="async" />
   </div>
   <p class="dev__title">{title}</p>
-  <p class="meta">{meta}{award && <span class="badge">{award.result}</span>}</p>
+  <p class="meta">
+    {metaParts.map((p) => <span class:list={[p.num && 'num']}>{p.text}</span>)}
+    {award && <span class="badge">{award.result}</span>}
+  </p>
 </a>

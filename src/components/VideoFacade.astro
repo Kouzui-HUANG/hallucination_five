@@ -4,6 +4,7 @@
  * YouTube 用 youtube-nocookie.com 嵌入。沒有影片（客戶案只給劇照）時只顯示縮圖。
  */
 import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
 import { parseVideoUrl, type Work } from '../data/queries';
 
 interface Props {
@@ -14,7 +15,7 @@ const { work } = Astro.props;
 const { title, thumb, thumbAlt, videoUrl } = work.data;
 const video = videoUrl ? parseVideoUrl(videoUrl) : null;
 const canEmbed = !!video && video.provider !== 'unknown' && !!video.embedUrl;
-const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看 ↗' : video?.provider === 'vimeo' ? '在 Vimeo 觀看 ↗' : '在原站觀看 ↗';
+const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看' : video?.provider === 'vimeo' ? '在 Vimeo 觀看' : '在原站觀看';
 ---
 
 <div class="video">
@@ -41,7 +42,7 @@ const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看 ↗' : vi
   {
     video && (
       <p class="video__credit">
-        <a href={video.watchUrl} target="_blank" rel="noopener noreferrer">{watchLabel}</a>
+        <a href={video.watchUrl} target="_blank" rel="noopener noreferrer">{watchLabel} <Icon name="external" size={14} /></a>
       </p>
     )
   }
@@ -94,16 +95,14 @@ const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看 ↗' : vi
     place-items: center;
     width: 84px;
     height: 84px;
-    margin: -42px 0 0 -42px;
-    padding-left: 4px;
+    translate: -50% -50%;
+    padding-left: var(--space-2xs);
     color: var(--text);
     cursor: pointer;
     border-radius: 50%;
-    border: 1px solid rgb(241 237 230 / 0.7);
-    background: rgb(14 14 16 / 0.45);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    border: 1px solid var(--text-a70);
+    background: var(--bg-a72);
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
   }
   .facade__play:hover,
   .facade__play:focus-visible {
@@ -119,7 +118,7 @@ const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看 ↗' : vi
     border: 0;
   }
   .video__credit {
-    margin-top: 10px;
+    margin-top: var(--space-sm);
     font-size: 13px;
     color: var(--muted);
   }
@@ -130,7 +129,6 @@ const watchLabel = video?.provider === 'youtube' ? '在 YouTube 觀看 ↗' : vi
     .facade__play {
       width: 60px;
       height: 60px;
-      margin: -30px 0 0 -30px;
     }
   }
 </style>

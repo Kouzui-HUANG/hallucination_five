@@ -1,15 +1,18 @@
 ---
-/** 內頁頁首：麵包屑＋英文眉標＋h1＋導言（麵包屑要與 BaseLayout 的 BreadcrumbList 一致） */
+/**
+ * 內頁頁首：麵包屑＋h1＋事實列＋導言（麵包屑要與 BaseLayout 的 BreadcrumbList 一致）
+ * meta：標題下方的事實（例：作品的類別與年份），每一項一格；不要放只是重複標題的英文
+ */
 import { routes } from '../data/site';
 
 interface Props {
-  en: string;
   title: string;
   lead?: string;
+  meta?: string[];
   crumbs?: { label: string; href?: string }[];
 }
 
-const { en, title, lead, crumbs = [] } = Astro.props;
+const { title, lead, meta = [], crumbs = [] } = Astro.props;
 ---
 
 <header class="page-head">
@@ -27,7 +30,16 @@ const { en, title, lead, crumbs = [] } = Astro.props;
         </nav>
       )
     }
-    <h1 class="page-head__title"><span class="page-head__en">{en}</span>{title}</h1>
+    <h1 class="page-head__title">{title}</h1>
+    {
+      meta.length > 0 && (
+        <p class="page-head__meta label">
+          {meta.map((m) => (
+            <span>{m}</span>
+          ))}
+        </p>
+      )
+    }
     {lead && <p class="page-head__lead">{lead}</p>}
     <slot />
   </div>
