@@ -1,0 +1,11 @@
+---
+/** /ja/services/<slug>/ — 日文版（內容與版面在 src/views/ServicePage.astro，兩種語言共用） */
+import ServicePage from '../../../views/ServicePage.astro';
+import { SERVICES } from '../../../data/services.mjs';
+
+export function getStaticPaths() {
+  return SERVICES.map((s) => ({ params: { slug: s.slug } }));
+}
+---
+
+<ServicePage slug={Astro.params.slug!} />

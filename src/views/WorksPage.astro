@@ -1,0 +1,131 @@
+---
+/**
+ * 作品總覽（設計文件 §3-2）：/works/ 與 /ja/works/ 共用。日文版的卡片連到繁中作品頁並標「中国語ページ」
+ * 一頁列完，依發表日新到舊；類別篩選用 JS 切換（沒有 JS 時全部顯示）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import DevCard from '../components/DevCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getSiteData } from '../data/queries';
+import { CATEGORIES } from '../data/categories';
+import { LANG_META, absRoutesFor, categoryLabelFor, langOf, t } from '../i18n';
+
+const lang = langOf(Astro.url);
+const copy = t(lang).works;
+const absRoutes = absRoutesFor(lang);
+const label = categoryLabelFor(lang);
+
+const { works } = await getSiteData();
+const filters = CATEGORIES.map((c) => ({ ...c, label: label(c.slug), count: works.filter((w) => w.data.category === c.slug).length })).filter(
+  (c) => c.count > 0,
+);
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: copy.title,
+  url: absRoutes.works(),
+  ...(lang === 'ja' ? { inLanguage: LANG_META.ja.hreflang } : {}),
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: works.map((w, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: absRoutes.work(w.data.slug),
+      name: w.data.title,
+    })),
+  },
+};
+---
+
+<BaseLayout title={copy.title} seoTitle={copy.seoTitle} description={copy.description} schemas={[collectionSchema]}>
+  <PageHead title={copy.title} lead={copy.lead} crumbs={[{ label: t(lang).crumbs.works }]} />
+
+  <section class="section works-page" aria-label={copy.listAria}>
+    <div class="container">
+      <div class="filters" role="group" aria-label={copy.filterAria}>
+        <button type="button" class="filter is-active" data-filter="all" aria-pressed="true">
+          {copy.all} <span class="filter__count">{works.length}</span>
+        </button>
+        {
+          filters.map((f) => (
+            <button type="button" class="filter" data-filter={f.slug} aria-pressed="false">
+              {f.label} <span class="filter__count">{f.count}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p class="hint label">{copy.hint}</p>
+      <div class="dev-grid" data-works>
+        {works.map((w) => <DevCard work={w} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .works-page {
+    padding-top: 48px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .filter {
+    height: 44px;
+    padding: 0 var(--space-md);
+    font: 600 14px var(--font-body);
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    transition:
+      color var(--dur-short),
+      border-color var(--dur-short);
+  }
+  .filter:hover {
+    color: var(--text);
+  }
+  .filter.is-active {
+    color: var(--text);
+    border-color: var(--text);
+  }
+  .filter__count {
+    margin-left: var(--space-2xs);
+    font: 12px var(--font-latin);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  /* 字體、字級與顏色來自 .label */
+  .hint {
+    margin: 28px 0 var(--space-lg);
+  }
+  @media (hover: none) {
+    .hint {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter');
+  const cards = document.querySelectorAll<HTMLElement>('[data-works] .dev');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.filter;
+      buttons.forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      cards.forEach((card) => {
+        card.hidden = f !== 'all' && card.dataset.category !== f;
+      });
+    });
+  });
+</script>

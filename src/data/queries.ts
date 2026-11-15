@@ -6,6 +6,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type Work = CollectionEntry<'works'>;
 export type Member = CollectionEntry<'team'>;
+export type MemberJa = CollectionEntry<'teamJa'>;
 
 export type AwardRow = {
   year: number;
@@ -19,7 +20,7 @@ export type AwardRow = {
   /** 名次與等第獎算「獲獎」，入圍與入選不算 */
   winner: boolean;
   /** 獎盃、獎狀的實體照片；有 person 的只在該成員的頁面顯示本人那張 */
-  photos?: { src: ImageMetadata; alt: string; person?: string }[];
+  photos?: { src: ImageMetadata; alt: string; altJa?: string; person?: string }[];
   photoLabel?: string;
 };
 
@@ -27,6 +28,8 @@ export type SiteData = {
   works: Work[];
   team: Member[];
   teamById: Map<string, Member>;
+  /** 創辦人的日文介紹（team/<slug>/ja.md），key 是成員 slug */
+  teamJaById: Map<string, MemberJa>;
   featured: Work[];
   awards: AwardRow[];
 };
@@ -56,6 +59,7 @@ async function load(): Promise<SiteData> {
   );
   const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
   const teamById = new Map(team.map((t) => [t.id, t]));
+  const teamJaById = new Map((await getCollection('teamJa')).map((t) => [t.id, t]));
 
   const featured = works
     .filter((w) => w.data.featured)
@@ -84,7 +88,7 @@ async function load(): Promise<SiteData> {
     ),
   ].sort((a, b) => b.year - a.year || (RESULT_RANK[a.result] ?? 9) - (RESULT_RANK[b.result] ?? 9));
 
-  return { works, team, teamById, featured, awards };
+  return { works, team, teamById, teamJaById, featured, awards };
 }
 
 /** 某位成員參與導演的作品 */
@@ -180,11 +184,15 @@ export function fmtDate(iso: string): string {
   return iso.replace(/-/g, '.');
 }
 
-/** 卡片 metadata 行：2026・短片・08:29（連續劇顯示「全 30 集」） */
-export function workMetaParts(work: Work, label: (slug: string) => string): string[] {
+/** 卡片 metadata 行：2026・短片・08:29（連續劇顯示「全 30 集」；日文頁傳入「全30話」的格式） */
+export function workMetaParts(
+  work: Work,
+  label: (slug: string) => string,
+  episodesLabel: (n: number) => string = (n) => `全 ${n} 集`,
+): string[] {
   const { year, category, durationSec, episodes } = work.data;
   const parts = [String(year), label(category)];
-  if (episodes) parts.push(`全 ${episodes} 集`);
+  if (episodes) parts.push(episodesLabel(episodes));
   else {
     const d = fmtDuration(durationSec);
     if (d) parts.push(d);

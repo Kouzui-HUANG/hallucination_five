@@ -2,18 +2,24 @@
 /** 四項服務的大字清單（首頁、服務總覽） */
 import Icon from './Icon.astro';
 import { SERVICES } from '../data/services.mjs';
-import { routes } from '../data/site';
+import { SERVICES_JA } from '../data/services.ja.mjs';
+import { langOf, routesFor, t } from '../i18n';
+
+const lang = langOf(Astro.url);
+const services = lang === 'ja' ? SERVICES_JA : SERVICES;
+const routes = routesFor(lang);
+const copy = t(lang).serviceList;
 ---
 
 <ol class="svc">
   {
-    SERVICES.map((s) => (
+    services.map((s) => (
       <li>
         <a class="svc__row" href={routes.service(s.slug)}>
           <h3 class="svc__name f-display">{s.name}</h3>
           <p class="svc__desc">
             {s.summary}
-            <span class="svc__for">適合：{s.forWho}</span>
+            <span class="svc__for">{copy.for}{s.forWho}</span>
           </p>
           <span class="svc__arrow" aria-hidden="true"><Icon name="arrow" size={22} /></span>
         </a>

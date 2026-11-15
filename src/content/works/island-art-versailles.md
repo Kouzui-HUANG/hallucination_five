@@ -8,6 +8,7 @@ durationSec: 48
 videoUrl: "https://www.youtube.com/watch?v=GX5d8Y7--Qc"
 thumb: "./thumbs/island-art-versailles.jpg"
 thumbAlt: "調色刀在畫布上抹開紅與黃的厚重油彩，特寫畫面"
+thumbAltJa: "パレットナイフでキャンバスに赤と黄の厚い油絵の具を塗り広げるクローズアップ"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

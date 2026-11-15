@@ -2,12 +2,12 @@
 /**
  * 作品卡（全彩）。lead＝首頁精選的大卡，多一段劇情簡介。
  * 片名在前、資訊列在後；獲獎徽章放在資訊列，不蓋在縮圖上（縮圖常有片名或桂冠標章）。
+ * 日文頁：連到繁中作品頁並標「中国語ページ」；劇情簡介只有中文，大卡不顯示簡介（設計文件 §2-1）
  */
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
-import { routes } from '../data/site';
-import { categoryLabel } from '../data/categories';
 import { directorsOf, workMetaParts, type Member, type Work } from '../data/queries';
+import { awardText, categoryLabelFor, langOf, routesFor, t } from '../i18n';
 
 interface Props {
   work: Work;
@@ -17,30 +17,35 @@ interface Props {
 }
 
 const { work, teamById, lead = false, eager = false } = Astro.props;
-const { title, slug, thumb, thumbAlt, synopsis, awards, client, platform, credits } = work.data;
+const lang = langOf(Astro.url);
+const copy = t(lang).cards;
+const routes = routesFor(lang);
+const { title, slug, thumb, thumbAlt, thumbAltJa, synopsis, awards, client, platform, credits } = work.data;
+const alt = lang === 'ja' ? (thumbAltJa ?? '') : thumbAlt;
+const showSynopsis = lead && lang === 'zh-Hant';
 
 /* 年份與時間碼用 Archivo 等寬數字，其餘（類別、全 N 集）用內文字體；有影片的作品在時間碼前標播放記號 */
 const hasVideo = Boolean(work.data.videoUrl);
-const metaParts = workMetaParts(work, categoryLabel).map((text) => ({
+const metaParts = workMetaParts(work, categoryLabelFor(lang), copy.episodes).map((text) => ({
   text,
   num: /^[\d:]+$/.test(text),
   tc: /^\d{1,2}:\d{2}(:\d{2})?$/.test(text),
 }));
 const award = awards[0];
-const directors = directorsOf(work, teamById).map((m) => m.data.name).join('・');
+const directors = directorsOf(work, teamById).map((m) => m.data.name).join(copy.nameSep);
 const external = credits.filter((c) => !c.team && c.name).map((c) => c.name);
 const creditParts = [
-  `導演 ${directors}`,
-  ...(external.length ? [`協作 ${external.join('、')}`] : []),
-  ...(platform ? [`${platform} 委製`] : client ? [client] : []),
+  `${copy.director} ${directors}`,
+  ...(external.length ? [`${copy.collab} ${external.join(copy.listSep)}`] : []),
+  ...(platform ? [copy.commissioned(platform)] : client ? [client] : []),
 ];
 ---
 
-<a class:list={['work-card', lead && 'work-card--lead']} href={routes.work(slug)}>
+<a class:list={['work-card', lead && 'work-card--lead']} href={routes.work(slug)} hreflang={copy.zhPage ? 'zh-Hant-TW' : undefined}>
   <div class="work-card__thumb">
     <Image
       src={thumb}
-      alt={thumbAlt}
+      alt={alt}
       widths={lead ? [640, 960, 1280] : [480, 800]}
       sizes={lead ? '(max-width: 1024px) 100vw, 820px' : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px'}
       loading={eager ? 'eager' : 'lazy'}
@@ -57,8 +62,9 @@ const creditParts = [
         </span>
       ))
     }
-    {award && <span class="badge">{award.result}</span>}
+    {award && <span class="badge">{awardText(lang).result(award.result)}</span>}
+    {copy.zhPage && <span>{copy.zhPage}</span>}
   </p>
-  {lead && <p class="work-card__desc">{synopsis}</p>}
+  {showSynopsis && <p class="work-card__desc">{synopsis}</p>}
   <p class="work-card__credit">{creditParts.join('｜')}</p>
 </a>

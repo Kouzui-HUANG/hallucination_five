@@ -9,6 +9,7 @@ episodes: 30
 videoUrl: "https://www.youtube.com/watch?v=tV_8OacJVI4"
 thumb: "./thumbs/moyi-ep01.jpg"
 thumbAlt: "直式劇集海報置中於模糊的同圖襯底：雨夜老街上一名短髮少女與一隻黑貓並立，上方是「墨儀問靈・八方借命」書法標題"
+thumbAltJa: "縦長のドラマポスターを、同じ画像をぼかした背景の中央に配置。雨の夜の古い街並みに短髪の少女と黒猫が並び、上に書の題字「墨儀問靈・八方借命」"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

@@ -1,15 +1,20 @@
 ---
-/** 創辦人卡（首頁、關於頁）：名字在前，職稱與羅馬拼音接在名字下方 */
+/** 創辦人卡（首頁、關於頁）：名字在前，職稱與羅馬拼音接在名字下方。日文頁傳入 ja（team/<slug>/ja.md）蓋過要翻譯的欄位 */
 import { Image } from 'astro:assets';
-import { routes } from '../data/site';
-import type { Member } from '../data/queries';
+import type { Member, MemberJa } from '../data/queries';
+import { langOf, routesFor, t } from '../i18n';
 
 interface Props {
   member: Member;
+  ja?: MemberJa;
 }
 
-const { member } = Astro.props;
-const { name, nameEn, role, summary, specialties, portrait, portraitAlt } = member.data;
+const { member, ja } = Astro.props;
+const lang = langOf(Astro.url);
+const routes = routesFor(lang);
+const local = lang === 'ja' && ja ? ja.data : member.data;
+const { name, nameEn, portrait } = member.data;
+const { role, summary, specialties, portraitAlt } = local;
 ---
 
 <article class="person">
@@ -22,7 +27,7 @@ const { name, nameEn, role, summary, specialties, portrait, portraitAlt } = memb
     <p class="person__en label" lang="en">{nameEn}</p>
     <p class="person__summary">{summary}</p>
     <ul class="tags person__tags">{specialties.map((s) => <li>{s}</li>)}</ul>
-    <a class="link-arrow" href={routes.team(member.id)}>認識{name.slice(1)}</a>
+    <a class="link-arrow" href={routes.team(member.id)}>{t(lang).person.link(name)}</a>
   </div>
 </article>
 

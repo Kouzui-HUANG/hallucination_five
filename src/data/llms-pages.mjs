@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import { SITE_URL } from '../../site.config.mjs';
 import { SERVICES } from './services.mjs';
+import { SERVICES_JA } from './services.ja.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const CONTENT = join(__dirname, '..', 'content');
@@ -42,7 +43,16 @@ function readDirEntries(dir, { folders }) {
       if (folders) {
         if (!statSync(full).isDirectory()) return [];
         const idx = join(full, 'index.md');
-        return existsSync(idx) ? [{ id: name, fm: parseFrontmatter(readFileSync(idx, 'utf-8')) }] : [];
+        const ja = join(full, 'ja.md');
+        if (!existsSync(idx)) return [];
+        return [
+          {
+            id: name,
+            fm: parseFrontmatter(readFileSync(idx, 'utf-8')),
+            /** 日文介紹（team/<slug>/ja.md）的 frontmatter；沒有就是 null */
+            ja: existsSync(ja) ? parseFrontmatter(readFileSync(ja, 'utf-8')) : null,
+          },
+        ];
       }
       if (!name.endsWith('.md')) return [];
       return [{ id: name.replace(/\.md$/, ''), fm: parseFrontmatter(readFileSync(full, 'utf-8')) }];
@@ -104,6 +114,24 @@ export const SECTIONS = [
         },
       ]
     : []),
+  {
+    // 日文版：只列在 llms.txt 目錄，不進全文檔（內容與繁中頁相同，避免重複）
+    heading: '日本語版（Japanese）',
+    pages: [
+      { path: '/ja/', title: 'ホーム', note: '台湾のAI映像制作会社 HALLUCINATION FIVE（幻五映像）の紹介、作品、サービス、受賞歴、創業者', optional: true },
+      { path: '/ja/works/', title: '作品', note: 'AI広告、MV、ショートドラマ、短編映画、アニメーション（各作品のページは中国語）', optional: true },
+      { path: '/ja/services/', title: 'サービス', note: '商業映像制作、ショートドラマ・シリーズ、講座と企業研修、AI導入コンサルティング', optional: true },
+      ...SERVICES_JA.map((s) => ({ path: `/ja/services/${s.slug}/`, title: s.name, note: s.summary, optional: true })),
+      { path: '/ja/about/', title: '幻五映像について', note: '沿革、社名の由来、会社情報', optional: true },
+      ...idx.team.map((t) => ({
+        path: `/ja/team/${t.id}/`,
+        title: t.fm.name ?? t.id,
+        note: t.ja?.tagline ?? '',
+        optional: true,
+      })),
+      { path: '/ja/contact/', title: 'お問い合わせ', note: '日本語でのお問い合わせ、日本円でのお見積もりに対応', optional: true },
+    ],
+  },
   ...(idx.works.length
     ? [
         {

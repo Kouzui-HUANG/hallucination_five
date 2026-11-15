@@ -8,6 +8,7 @@ durationSec: 90
 videoUrl: "https://www.youtube.com/watch?v=Qp8r3JxeB30"
 thumb: "./thumbs/zongji-tianhui.jpg"
 thumbAlt: "《粽乩：天迴》預告海報：雷雨夜的廟宇前，一名黑衣男子手持燃著火焰的金屬圓環，左側是書法片名與「AI短劇預告」字樣"
+thumbAltJa: "『粽乩：天迴』予告編のポスター。雷雨の夜の廟の前で、黒い服の男性が炎をまとった金属の輪を手にしている。左側に書の題字と「AI短劇預告」の文字"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

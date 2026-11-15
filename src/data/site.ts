@@ -6,14 +6,15 @@
  */
 import { SITE_ORIGIN, BASE_PATH, SITE_URL } from '../../site.config.mjs';
 import { SERVICES } from './services.mjs';
+import { ZH } from '../i18n/zh-Hant.mjs';
+import { JA } from '../i18n/ja.mjs';
 
 export const SITE = {
   name: '幻五映像',
   nameEn: 'HALLUCINATION FIVE',
-  tagline: '畫面交給 AI，故事留給人。',
-  /** 長版站台描述：llms.txt 開頭引言、首頁 meta、Organization schema */
-  description:
-    '幻五映像（HALLUCINATION FIVE）由幻詠工作室與 5Y工作室合夥成立，承接 AI 商業廣告、MV、平台短劇與影集製作，並提供 AI 影片課程、企業內訓與 AI 導入顧問。',
+  tagline: ZH.layout.tagline,
+  /** 長版站台描述：首頁 meta、Organization schema（字串在 i18n/zh-Hant.mjs；日文版在 ja.mjs） */
+  description: ZH.meta.description,
   origin: SITE_ORIGIN,
   base: BASE_PATH,
   url: SITE_URL,
@@ -22,6 +23,8 @@ export const SITE = {
   email: 'ai_video@hallucination28.com',
   /** Google 表單的 viewform 網址。留空則聯絡頁改用 Email 洽詢範本 */
   contactFormUrl: '',
+  /** 日文版表單（設計文件 §3-6：日文另做一份、預算用萬円級距）。留空則 /ja/contact/ 用日文 Email 範本 */
+  contactFormUrlJa: '',
   /** 公司社群帳號（創辦人個人帳號寫在 team）。Organization.sameAs 只收非空值 */
   social: {
     youtube: '',
@@ -72,10 +75,9 @@ export const COMPANY = {
  * 頁尾與關於頁的公司名稱。更名期間先寫公示資料查得到的現行名稱，再附註新名稱，
  * 客戶拿這個名字或統編去查才對得上。
  */
-export function legalNameLine(): string {
-  return COMPANY.renamePending
-    ? `${COMPANY.legalName}（更名為${COMPANY.newLegalName}登記中）`
-    : COMPANY.legalName;
+export function legalNameLine(lang: 'zh-Hant' | 'ja' = 'zh-Hant'): string {
+  const dict = lang === 'ja' ? JA : ZH;
+  return COMPANY.renamePending ? dict.layout.renamePending(COMPANY.legalName, COMPANY.newLegalName) : COMPANY.legalName;
 }
 
 /**

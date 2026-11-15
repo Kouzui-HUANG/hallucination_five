@@ -41,10 +41,12 @@ function pathToHtml(distDir, pagePath) {
   return join(distDir, pagePath.replace(/^\//, ''), 'index.html');
 }
 
-// ── 標題字型子集（Noto Serif TC）────────────────────────────────────────
-// BaseLayout 在 build 時輸出 text=__H5_DISPLAY_TEXT__；這裡收集全站 h1、h2 與 .f-display 用到的字，
-// 換成 URL 編碼後的字串，Google Fonts 就只回傳這些字（幾十 KB），新增作品或頁面時自動跟著更新。
-const DISPLAY_TEXT_PLACEHOLDER = '__H5_DISPLAY_TEXT__';
+// ── 標題字型子集（繁中頁 Noto Serif TC、日文頁 Noto Serif JP）──────────────────
+// BaseLayout 在 build 時輸出 text=__H5_DISPLAY_TEXT__（日文頁是 __H5_DISPLAY_TEXT_JA__）；這裡依語言分開收集
+// h1、h2 與 .f-display 用到的字，換成 URL 編碼後的字串，Google Fonts 就只回傳這些字（幾十 KB），
+// 新增作品或頁面時自動跟著更新。
+const DISPLAY_TEXT_PLACEHOLDERS = { zh: '__H5_DISPLAY_TEXT__', ja: '__H5_DISPLAY_TEXT_JA__' };
+const isJaHtml = (html) => /<html\b[^>]*\blang="ja"/i.test(html);
 
 function listHtmlFiles(dirPath) {
   return readdirSync(dirPath, { withFileTypes: true }).flatMap((entry) => {
@@ -74,26 +76,32 @@ function displayFontSubset() {
         const files = listHtmlFiles(fileURLToPath(dir));
         // h1、h2、.f-display（整段用標題字）與 .f-subset（數字用 Archivo、中文落到標題字，例：中・日）
         const heads = /<(h1|h2)\b[^>]*>([\s\S]*?)<\/\1>|<([a-z][a-z0-9]*)\b[^>]*\bclass="[^"]*\bf-(?:display|subset)\b[^"]*"[^>]*>([\s\S]*?)<\/\3>/gi;
-        const glyphs = new Set();
+        const glyphs = { zh: new Set(), ja: new Set() };
+        const langOfFile = new Map();
         for (const file of files) {
-          const html = readFileSync(file, 'utf-8')
-            .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-            .replace(/<style\b[\s\S]*?<\/style>/gi, '');
+          const raw = readFileSync(file, 'utf-8');
+          const lang = isJaHtml(raw) ? 'ja' : 'zh';
+          langOfFile.set(file, lang);
+          const html = raw.replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/<style\b[\s\S]*?<\/style>/gi, '');
           for (const m of html.matchAll(heads)) {
             const text = decodeEntities((m[2] ?? m[4] ?? '').replace(/<[^>]+>/g, ''));
-            for (const ch of text) if (!/\s/.test(ch)) glyphs.add(ch);
+            for (const ch of text) if (!/\s/.test(ch)) glyphs[lang].add(ch);
           }
         }
-        const text = encodeURIComponent([...glyphs].sort().join(''));
-        let rewritten = 0;
-        for (const file of files) {
-          const html = readFileSync(file, 'utf-8');
-          if (!html.includes(DISPLAY_TEXT_PLACEHOLDER)) continue;
-          writeFileSync(file, html.replaceAll(DISPLAY_TEXT_PLACEHOLDER, text), 'utf-8');
-          rewritten += 1;
+        for (const lang of ['zh', 'ja']) {
+          const placeholder = DISPLAY_TEXT_PLACEHOLDERS[lang];
+          const text = encodeURIComponent([...glyphs[lang]].sort().join(''));
+          let rewritten = 0;
+          for (const file of files) {
+            if (langOfFile.get(file) !== lang) continue;
+            const html = readFileSync(file, 'utf-8');
+            if (!html.includes(placeholder)) continue;
+            writeFileSync(file, html.replaceAll(placeholder, text), 'utf-8');
+            rewritten += 1;
+          }
+          logger.info(`[${lang}] ${glyphs[lang].size} glyphs; ${rewritten} pages now load the subset`);
+          if (text.length > 7000) logger.warn(`[${lang}] display font text= is ${text.length} characters; consider trimming display headings`);
         }
-        logger.info(`${glyphs.size} glyphs from ${files.length} pages; ${rewritten} pages now load the subset`);
-        if (text.length > 7000) logger.warn(`display font text= is ${text.length} characters; consider trimming display headings`);
       },
     },
   };
@@ -110,12 +118,13 @@ const PHRASE_LETTER = /[㐀-䶿一-鿿豈-﫿ぁ-ゖァ-ヺ]/;
 const PHRASE_KANA = /[ぁ-ゖァ-ヺ]/;
 const PHRASE_SKIP = new Set(['script', 'style', 'noscript', 'title', 'textarea', 'pre', 'code', 'svg']);
 
+// 日文頁（html lang="ja"）整頁都用日文的 BudouX 與 ICU 詞典；繁中頁遇到含假名的片段（日文片名）才換成日文
 function makePhraser() {
   const zh = { budoux: loadDefaultTraditionalChineseParser(), icu: new Intl.Segmenter('zh-Hant', { granularity: 'word' }) };
   const ja = { budoux: loadDefaultJapaneseParser(), icu: new Intl.Segmenter('ja', { granularity: 'word' }) };
-  return (text) => {
+  return (text, pageIsJa = false) => {
     if (!PHRASE_LETTER.test(text)) return text;
-    const { budoux, icu } = PHRASE_KANA.test(text) ? ja : zh;
+    const { budoux, icu } = pageIsJa || PHRASE_KANA.test(text) ? ja : zh;
     const phraseEnds = new Set();
     let at = 0;
     for (const part of budoux.parse(text)) {
@@ -141,11 +150,12 @@ function makePhraser() {
 function addPhraseBreaks(html, phrase) {
   const tagRe = /<!--[\s\S]*?-->|<(?:"[^"]*"|'[^']*'|[^'">])*>/g;
   const skip = [];
+  const pageIsJa = isJaHtml(html);
   let inBody = false;
   let out = '';
   let last = 0;
   const text = (t) =>
-    inBody && !skip.length ? t.split(/(&[#\w]+;)/).map((c) => (/^&[#\w]+;$/.test(c) ? c : phrase(c))).join('') : t;
+    inBody && !skip.length ? t.split(/(&[#\w]+;)/).map((c) => (/^&[#\w]+;$/.test(c) ? c : phrase(c, pageIsJa))).join('') : t;
   for (const m of html.matchAll(tagRe)) {
     out += text(html.slice(last, m.index)) + m[0];
     last = m.index + m[0].length;
@@ -242,16 +252,17 @@ function llmsTxtIntegration() {
 }
 
 // ── Sitemap <lastmod> 對照表 ─────────────────────────────────────────────
-// 規則：作品頁用 releasedAt；創辦人頁用 updatedAt；作品總覽與首頁用最新日；
-// 其他頁面用對應 .astro 檔的 git last-commit 日（沒有 git 歷史時退回 mtime）
+// 規則：作品頁用 releasedAt；創辦人頁用 updatedAt（日文頁用 ja.md 的 updatedAt）；作品總覽與首頁用最新日；
+// 其他頁面用內容來源檔（view 與該語言的字串檔）的 git last-commit 日，取最新（沒有 git 歷史時退回 mtime）
 
+const LANG_FILES = { zh: 'src/i18n/zh-Hant.mjs', ja: 'src/i18n/ja.mjs' };
 const STATIC_PAGES = [
-  ['/services/', 'src/pages/services/index.astro'],
-  ['/about/', 'src/pages/about.astro'],
-  ['/contact/', 'src/pages/contact.astro'],
-  ['/privacy/', 'src/pages/privacy.astro'],
-  ['/process/previs/', 'src/pages/process/previs.astro'],
+  ['/services/', ['src/views/ServicesPage.astro']],
+  ['/about/', ['src/views/AboutPage.astro']],
+  ['/contact/', ['src/views/ContactPage.astro']],
+  ['/privacy/', ['src/views/PrivacyPage.astro']],
 ];
+const ZH_ONLY_PAGES = [['/process/previs/', ['src/pages/process/previs.astro']]];
 
 function fileDate(absPath) {
   try {
@@ -264,6 +275,18 @@ function fileDate(absPath) {
     /* 不是 git repo：退回 mtime */
   }
   return new Date(statSync(absPath).mtimeMs).toISOString().slice(0, 10);
+}
+
+/** 多個來源檔取最新的日期；git 還沒記錄的新檔退回 mtime */
+function latestFileDate(files) {
+  return (
+    files
+      .map((f) => join(__dirname, f))
+      .filter((abs) => existsSync(abs))
+      .map(fileDate)
+      .sort()
+      .reverse()[0] ?? null
+  );
 }
 
 function buildLastmodMap() {
@@ -279,26 +302,45 @@ function buildLastmodMap() {
     workDates.push(d);
   }
   const teamDates = [];
+  const teamJaDates = [];
   for (const t of idx.team) {
     const d = t.fm.updatedAt ? String(t.fm.updatedAt).slice(0, 10) : null;
-    if (!d) continue;
-    map.set(`${SITE_URL}/team/${t.id}/`, d);
-    teamDates.push(d);
+    if (d) {
+      map.set(`${SITE_URL}/team/${t.id}/`, d);
+      teamDates.push(d);
+    }
+    const ja = t.ja?.updatedAt ? String(t.ja.updatedAt).slice(0, 10) : null;
+    if (ja) {
+      map.set(`${SITE_URL}/ja/team/${t.id}/`, ja);
+      teamJaDates.push(ja);
+    }
   }
 
   const lw = latestOf(workDates);
-  if (lw) map.set(`${SITE_URL}/works/`, lw);
+  if (lw) {
+    map.set(`${SITE_URL}/works/`, lw);
+    map.set(`${SITE_URL}/ja/works/`, lw);
+  }
   const latestAll = latestOf([lw, latestOf(teamDates)]);
   if (latestAll) map.set(`${SITE_URL}/`, latestAll);
+  const latestJa = latestOf([lw, latestOf(teamJaDates), latestFileDate([LANG_FILES.ja])]);
+  if (latestJa) map.set(`${SITE_URL}/ja/`, latestJa);
 
-  for (const [path, file] of STATIC_PAGES) {
-    const abs = join(__dirname, file);
-    if (existsSync(abs)) map.set(`${SITE_URL}${path}`, fileDate(abs));
+  for (const [path, files] of STATIC_PAGES) {
+    const zh = latestFileDate([...files, LANG_FILES.zh]);
+    const ja = latestFileDate([...files, LANG_FILES.ja]);
+    if (zh) map.set(`${SITE_URL}${path}`, zh);
+    if (ja) map.set(`${SITE_URL}/ja${path}`, ja);
   }
-  const serviceFile = join(__dirname, 'src/data/services.mjs');
-  if (existsSync(serviceFile)) {
-    const d = fileDate(serviceFile);
-    for (const s of idx.services) map.set(`${SITE_URL}/services/${s.slug}/`, d);
+  for (const [path, files] of ZH_ONLY_PAGES) {
+    const d = latestFileDate(files);
+    if (d) map.set(`${SITE_URL}${path}`, d);
+  }
+  const serviceZh = latestFileDate(['src/data/services.mjs']);
+  const serviceJa = latestFileDate(['src/data/services.ja.mjs']);
+  for (const s of idx.services) {
+    if (serviceZh) map.set(`${SITE_URL}/services/${s.slug}/`, serviceZh);
+    if (serviceJa) map.set(`${SITE_URL}/ja/services/${s.slug}/`, serviceJa);
   }
 
   return map;
@@ -340,6 +382,8 @@ export default defineConfig({
     llmsTxtIntegration(),
     displayFontSubset(),
     sitemap({
+      // 依網址前綴判斷語言（/ja/ 是日文、其餘是繁中），同一頁的兩個語言版本互相輸出 xhtml:link alternate（設計文件 §7-2）
+      i18n: { defaultLocale: 'zh-Hant', locales: { 'zh-Hant': 'zh-Hant-TW', ja: 'ja-JP' } },
       filter: (page) =>
         page !== SITE_URL &&
         !page.endsWith('/404/') &&

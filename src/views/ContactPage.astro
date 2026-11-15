@@ -1,0 +1,212 @@
+---
+/**
+ * 洽詢（設計文件 §3-6）：/contact/ 與 /ja/contact/ 共用
+ * 表單網址（繁中 SITE.contactFormUrl、日文 SITE.contactFormUrlJa）有值時嵌入 Google 表單；
+ * 留空則用 Email 洽詢範本（mailto 預填主旨與欄位，日文頁用日文欄位）。
+ * ?service=<slug> 會把對應的服務排到第一個並標示（服務頁 CTA 帶過來的）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Icon from '../components/Icon.astro';
+import { SERVICES } from '../data/services.mjs';
+import { SERVICES_JA } from '../data/services.ja.mjs';
+import { SITE, absRoutes } from '../data/site';
+import { LANG_META, absRoutesFor, langOf, t } from '../i18n';
+
+const lang = langOf(Astro.url);
+const copy = t(lang).contact;
+const services = lang === 'ja' ? SERVICES_JA : SERVICES;
+const formUrl = lang === 'ja' ? SITE.contactFormUrlJa : SITE.contactFormUrl;
+
+const mailto = (serviceName: string) => {
+  const subject = copy.subject(serviceName);
+  const body = [copy.serviceLine(serviceName), ...copy.fields.map((f) => `${f}：`), '', copy.bodyLabel, ''].join('\n');
+  return `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+const options = [
+  ...services.map((s) => ({ slug: s.slug, name: s.name, summary: s.summary, href: mailto(s.name) })),
+  { slug: 'other', name: copy.other.name, summary: copy.other.summary, href: mailto(copy.other.name) },
+];
+
+const contactSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: copy.title,
+  url: absRoutesFor(lang).contact(),
+  ...(lang === 'ja' ? { inLanguage: LANG_META.ja.hreflang } : {}),
+  mainEntity: { '@id': absRoutes.organizationId() },
+};
+---
+
+<BaseLayout title={copy.title} seoTitle={copy.seoTitle} description={copy.description} schemas={[contactSchema]}>
+  <PageHead title={copy.heading} lead={copy.lead} crumbs={[{ label: t(lang).crumbs.contact }]} />
+
+  <section class="section" aria-labelledby="mail-title">
+    <div class="container">
+      {
+        formUrl ? (
+          <div class="form-wrap">
+            <iframe
+              src={`${formUrl}?embedded=true`}
+              title={copy.formTitle}
+              loading="lazy"
+              width="100%"
+              height="1400"
+            />
+            <p class="note">
+              {copy.formNote}<a href={formUrl} target="_blank" rel="noopener noreferrer">{copy.formOpen} <Icon name="external" size={14} /></a>
+            </p>
+          </div>
+        ) : (
+          <>
+            <SectionHead title={copy.mailTitle} id="mail-title" />
+            <p class="mail-big">
+              <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            </p>
+            <p class="lead">{copy.mailLead}</p>
+            <ul class="options" data-options>
+              {options.map((o) => (
+                <li data-slug={o.slug}>
+                  <a class="option" href={o.href}>
+                    <span class="option__name">{o.name}</span>
+                    <span class="option__sum">{o.summary}</span>
+                    <span class="option__arrow" aria-hidden="true">
+                      <Icon name="mail" size={16} />
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="tips-title">
+    <div class="container tips-grid">
+      <SectionHead title={copy.tipsTitle} id="tips-title" />
+      <ul class="tips">
+        {copy.tips.map((tip) => <li><b>{tip.label}</b>{tip.text}</li>)}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .mail-big {
+    margin-bottom: 20px;
+    font-family: var(--font-latin);
+    font-stretch: 112%;
+    /* 整串信箱不斷行：字級跟著螢幕寬縮（320px 寬時約 15px） */
+    font-size: clamp(15px, 4.6vw, 48px);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .mail-big a:hover {
+    color: var(--accent);
+  }
+  .lead {
+    margin-bottom: 32px;
+    color: var(--text-soft);
+  }
+  .options {
+    border-top: 1px solid var(--line);
+  }
+  .option {
+    display: grid;
+    grid-template-columns: minmax(0, 12em) minmax(0, 1fr) 32px;
+    align-items: baseline;
+    gap: 20px;
+    padding: var(--space-lg) var(--space-xs);
+    border-bottom: 1px solid var(--line);
+    transition: background-color var(--dur-short);
+  }
+  /* 唯一的 hover 回饋：整列底色變亮（不位移、不變色） */
+  .option:hover {
+    background-color: var(--bg-raised);
+  }
+  .option__name {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .option__sum {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .option__arrow {
+    color: var(--muted);
+  }
+  /* 從服務頁帶過來的服務：排到第一個並標示 */
+  .options li.is-picked .option {
+    background: var(--bg-raised);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .form-wrap iframe {
+    width: 100%;
+    border: 0;
+    background: var(--text);
+  }
+  .note {
+    margin-top: var(--space-sm);
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .tips-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .tips-grid :global(.sec-head) {
+    margin-bottom: 0;
+  }
+  .tips {
+    border-top: 1px solid var(--line);
+  }
+  .tips li {
+    display: grid;
+    grid-template-columns: 7em minmax(0, 1fr);
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    color: var(--text-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .tips b {
+    color: var(--text);
+  }
+  @media (max-width: 900px) {
+    .tips-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+    .option {
+      grid-template-columns: minmax(0, 1fr) 24px;
+      row-gap: var(--space-2xs);
+    }
+    .option__sum {
+      grid-column: 1;
+      grid-row: 2;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .option {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const list = document.querySelector<HTMLElement>('[data-options]');
+  const picked = new URLSearchParams(location.search).get('service');
+  if (list && picked) {
+    const item = list.querySelector<HTMLElement>(`li[data-slug="${CSS.escape(picked)}"]`);
+    if (item) {
+      list.prepend(item);
+      item.classList.add('is-picked');
+    }
+  }
+</script>

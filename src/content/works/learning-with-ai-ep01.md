@@ -8,6 +8,7 @@ durationSec: 220
 videoUrl: "https://www.youtube.com/watch?v=RDgZTObYW78"
 thumb: "./thumbs/learning-with-ai-ep01.jpg"
 thumbAlt: "水藍色調的動畫教室，穿水手服的長髮少女坐在長椅上側望窗外，左側標示 2025 愛奇藝AI短片創作大賽獲獎作品"
+thumbAltJa: "水色を基調としたアニメの教室で、セーラー服を着た長い髪の少女がベンチに座り、窓の外を見ている。左側に2025年iQIYI AIショートフィルムコンテスト受賞作品の表記"
 directors: ["huang-hung-jui"]
 credits:
   - role: "導演"
@@ -22,6 +23,7 @@ awards:
     photos:
       - src: "./awards/learning-with-ai-ep01.jpg"
         alt: "愛奇藝「與AI共生」短片創作大賽的三等獎水晶獎盃，底座印有 iQIYI 2025，後方是頒給《與AI共學 EP01：期末考試》的三等獎獎狀"
+        altJa: "iQIYI「與AI共生」ショートフィルムコンテストの三等賞のクリスタルトロフィー。台座にiQIYI 2025の文字、後ろに『與AI共學 EP01：期末考試』に贈られた三等賞の賞状"
 featured: true
 order: 5
 ---

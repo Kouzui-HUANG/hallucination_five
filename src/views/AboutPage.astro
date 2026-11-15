@@ -1,0 +1,218 @@
+---
+/**
+ * 關於幻五（設計文件 §3-4）：/about/ 與 /ja/about/ 共用
+ * 公司簡介 → 名字的由來 → 沿革 → 我們相信的事 → 創辦人 → 公司資訊 → 相關計畫（圖鑑的利益揭露） → CTA
+ * 法定名稱照原文顯示，日文頁也不改寫成日文漢字（設計文件 §1-1）
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import PersonCard from '../components/PersonCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getSiteData } from '../data/queries';
+import { SITE, COMPANY, legalNameLine, absRoutes as absIds } from '../data/site';
+import { LANG_META, absRoutesFor, langOf, routesFor, t } from '../i18n';
+
+const lang = langOf(Astro.url);
+const copy = t(lang).about;
+const routes = routesFor(lang);
+const absRoutes = absRoutesFor(lang);
+
+const { team, teamJaById } = await getSiteData();
+
+const history = copy.history({ renamePending: COMPANY.renamePending, newLegalName: COMPANY.newLegalName });
+const beliefs = copy.beliefs;
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: copy.title,
+  url: absRoutes.about(),
+  ...(lang === 'ja' ? { inLanguage: LANG_META.ja.hreflang } : {}),
+  mainEntity: { '@id': absIds.organizationId() },
+};
+---
+
+<BaseLayout title={copy.title} seoTitle={copy.seoTitle} description={copy.description} schemas={[aboutSchema]}>
+  <PageHead title={copy.title} lead={copy.lead} crumbs={[{ label: t(lang).crumbs.about }]} />
+
+  <section class="section" aria-labelledby="name-title">
+    <div class="container about-grid">
+      <SectionHead title={copy.nameTitle} id="name-title" />
+      <div class="prose">
+        {copy.nameBody.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="history-title">
+    <div class="container">
+      <SectionHead title={copy.historyTitle} id="history-title" />
+      <ol class="history">
+        {
+          history.map((h) => (
+            <li class="history__item">
+              <span class="history__year num">{h.year}</span>
+              <p>{h.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="beliefs-title">
+    <div class="container">
+      <SectionHead title={copy.beliefsTitle} id="beliefs-title" />
+      <ul class="beliefs">
+        {
+          beliefs.map((b) => (
+            <li class="belief">
+              <h3 class="f-display">{b.title}</h3>
+              <p>{b.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="team-title">
+    <div class="container">
+      <SectionHead title={copy.teamTitle} id="team-title" />
+      <div class="team">
+        {team.map((m) => <PersonCard member={m} ja={teamJaById.get(m.id)} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="company-title">
+    <div class="container">
+      <SectionHead title={copy.companyTitle} id="company-title" />
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            <tr><th scope="row">{copy.table.name}</th><td>{legalNameLine(lang)}</td></tr>
+            {COMPANY.taxId && <tr><th scope="row">{copy.table.taxId}</th><td>{COMPANY.taxId}</td></tr>}
+            <tr>
+              <th scope="row">{copy.table.brand}</th>
+              <td>{SITE.name}／{SITE.nameEn}</td>
+            </tr>
+            <tr>
+              <th scope="row">{copy.table.founders}</th>
+              <td>
+                {
+                  team.map((m, i) => (
+                    <>
+                      {i > 0 && '、'}
+                      <a href={routes.team(m.id)}>{m.data.name}</a>
+                    </>
+                  ))
+                }
+              </td>
+            </tr>
+            <tr><th scope="row">{copy.table.services}</th><td>{copy.table.servicesValue}</td></tr>
+            <tr><th scope="row">{copy.table.area}</th><td>{copy.table.areaValue}</td></tr>
+            <tr>
+              <th scope="row">{copy.table.email}</th>
+              <td><a href={`mailto:${SITE.email}`}>{SITE.email}</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="related-title">
+    <div class="container about-grid">
+      <SectionHead title={copy.relatedTitle} id="related-title" />
+      <div class="prose">
+        <p>
+          {copy.related.before}<a href={SITE.directory.url} hreflang={lang === 'ja' ? 'zh-Hant-TW' : undefined}>「{SITE.directory.name}」</a>{copy.related.after}
+        </p>
+        <p>{copy.related.second}</p>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style>
+  .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 48px;
+    align-items: start;
+  }
+  .about-grid :global(.sec-head) {
+    margin-bottom: 0;
+  }
+  .history {
+    border-top: 1px solid var(--line);
+  }
+  .history__item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--space-lg);
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .history__year {
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .history__item p {
+    color: var(--text-soft);
+  }
+  .beliefs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .belief {
+    padding: 32px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .belief h3 {
+    font-size: 22px;
+  }
+  .belief p {
+    margin-top: var(--space-sm);
+    color: var(--text-soft);
+  }
+  .team {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .table a {
+    font-weight: 600;
+  }
+  .table a:hover {
+    color: var(--accent);
+  }
+  @media (max-width: 1024px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .team {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .beliefs {
+      grid-template-columns: 1fr;
+    }
+    .belief {
+      padding: var(--space-lg) 20px;
+    }
+    .history__item {
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: var(--space-sm);
+    }
+  }
+</style>

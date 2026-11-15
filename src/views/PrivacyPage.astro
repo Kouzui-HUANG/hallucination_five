@@ -1,0 +1,38 @@
+---
+/**
+ * 隱私權政策：/privacy/ 與 /ja/privacy/ 共用（P1 不裝分析工具，所以不需要 cookie 同意視窗；設計文件 §11 #9）
+ * 更新內容時兩種語言一起改，updated 也一起換。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import { SITE, COMPANY } from '../data/site';
+import { langOf, t } from '../i18n';
+
+const updated = '2026-11-11';
+const lang = langOf(Astro.url);
+const copy = t(lang).privacy;
+---
+
+<BaseLayout title={copy.title} description={copy.description}>
+  <PageHead title={copy.title} crumbs={[{ label: t(lang).crumbs.privacy }]} />
+
+  <section class="section">
+    <div class="container">
+      <div class="prose">
+        <p>{copy.intro(COMPANY.legalName, updated.replace(/-/g, '.'))}</p>
+        {
+          copy.sections.map((s) => (
+            <>
+              <h2>{s.h}</h2>
+              <p>{s.p}</p>
+            </>
+          ))
+        }
+        <h2>{copy.contactTitle}</h2>
+        <p>
+          {copy.contact.before}<a href={`mailto:${SITE.email}`}>{SITE.email}</a>{copy.contact.after}
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

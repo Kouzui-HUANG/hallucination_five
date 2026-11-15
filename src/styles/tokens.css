@@ -95,3 +95,11 @@
 
   color-scheme: dark;
 }
+
+/* 日文頁（/ja/，html lang="ja"）：內文換成日文系統黑體、標題換成 Noto Serif JP，漢字依日本字形（設計文件 §6-3）。
+   --font-latin、--font-body 都引用 --font-cjk，會跟著換 */
+:root:lang(ja) {
+  --font-cjk: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', YuGothic, Meiryo, system-ui, sans-serif;
+  --font-display: 'Noto Serif JP', var(--font-cjk);
+  --font-figure: 'Archivo', 'Noto Serif JP', var(--font-cjk);
+}

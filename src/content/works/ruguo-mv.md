@@ -8,6 +8,7 @@ durationSec: 252
 videoUrl: "https://www.youtube.com/watch?v=BaVlJUfaQC4"
 thumb: "./thumbs/ruguo-mv.jpg"
 thumbAlt: "雨滴布滿的車窗後，一名黑髮女子穿著米白色大衣靠窗望向窗外，畫面右側是白色毛筆字片名「如果我們沒有分開」"
+thumbAltJa: "雨粒のついた車の窓越しに、オフホワイトのコートを着た黒髪の女性が窓にもたれて外を見ている。右側に白い毛筆の題字「如果我們沒有分開」"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演・剪輯"

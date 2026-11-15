@@ -3,15 +3,15 @@ import { glob } from 'astro/loaders';
 import { CATEGORY_SLUGS } from './data/categories';
 
 /**
- * 兩個 collection：works（作品）、team（創辦人與成員）
+ * 三個 collection：works（作品）、team（創辦人與成員）、teamJa（創辦人的日文介紹，/ja/team/<slug>/ 用）
  *
  * 關聯只做單向：work → team（directors）。創辦人頁的作品列表在 build 時反查 works。
- * entry id 規則：works/<slug>.md → <slug>；team/<slug>/index.md → <slug>
+ * entry id 規則：works/<slug>.md → <slug>；team/<slug>/index.md → <slug>；team/<slug>/ja.md → <slug>
  * 日期一律寫成加引號的 "YYYY-MM-DD" 字串（不加引號 YAML 會轉成 Date）。
  */
 
 const stripId = ({ entry }: { entry: string }) =>
-  entry.replace(/\/index\.md$/, '').replace(/\.md$/, '');
+  entry.replace(/\/(index|ja)\.md$/, '').replace(/\.md$/, '');
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式須為 "YYYY-MM-DD"');
 
@@ -38,6 +38,8 @@ const works = defineCollection({
         videoUrl: z.string().url().optional(),
         thumb: image(),
         thumbAlt: z.string(),
+        /** 日文頁作品卡的替代文字（作品頁只有繁中，片名照原文；設計文件 §2-1）。沒填的話日文頁的 alt 留空 */
+        thumbAltJa: z.string().optional(),
         stills: z.array(z.object({ src: image(), alt: z.string() })).optional(),
         /** 公司成員（reference team）；第一位是主要導演 */
         directors: z.array(reference('team')).min(1),
@@ -64,7 +66,9 @@ const works = defineCollection({
           .array(
             award.extend({
               photos: z
-                .array(z.object({ src: image(), alt: z.string(), person: z.string().optional() }))
+                .array(
+                  z.object({ src: image(), alt: z.string(), altJa: z.string().optional(), person: z.string().optional() }),
+                )
                 .optional(),
               photoLabel: z.string().optional(),
             }),
@@ -134,4 +138,36 @@ const team = defineCollection({
     }),
 });
 
-export const collections = { works, team };
+/**
+ * 創辦人的日文介紹：team/<slug>/ja.md。姓名、肖像、連結、獲獎與作品沿用 index.md，
+ * 這裡只放要翻譯的欄位與本文。每位成員都要有一份（check-integrity 會檢查）。
+ */
+const teamJa = defineCollection({
+  loader: glob({ pattern: ['*/ja.md'], base: './src/content/team', generateId: stripId }),
+  schema: z.object({
+    role: z.string(),
+    jobTitle: z.string(),
+    tagline: z.string(),
+    summary: z.string(),
+    seoTitle: z.string(),
+    description: z.string().max(160),
+    portraitAlt: z.string(),
+    specialties: z.array(z.string()).default([]),
+    numbers: z
+      .array(
+        z.object({
+          value: z.string(),
+          unit: z.string().optional(),
+          label: z.string(),
+          note: z.string().optional(),
+        }),
+      )
+      .default([]),
+    timeline: z
+      .array(z.object({ year: z.string(), title: z.string(), note: z.string().optional() }))
+      .default([]),
+    updatedAt: isoDate,
+  }),
+});
+
+export const collections = { works, team, teamJa };

@@ -8,6 +8,7 @@ durationSec: 233
 videoUrl: "https://www.youtube.com/watch?v=Jp69un7FrRI"
 thumb: "./thumbs/hundred-days-ep01.jpg"
 thumbAlt: "太空船走廊盡頭爆出火光，一名短髮女子背對鏡頭站在中央，畫面上寫著「所有人都走了」「她呢？」"
+thumbAltJa: "宇宙船の通路の奥で炎が上がり、短髪の女性が中央に後ろ姿で立っている。画面には「みんないなくなった」「彼女は？」という意味の中国語の文字"
 directors: ["huang-hung-jui"]
 credits:
   - role: "導演"

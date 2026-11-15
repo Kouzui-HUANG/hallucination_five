@@ -1,15 +1,21 @@
 ---
 /** 獲獎紀錄：年份｜賽事｜名次｜作品（有作品頁的連過去）；有實體照片的獎項接在列表後 */
 import AwardPhoto from './AwardPhoto.astro';
-import { routes } from '../data/site';
 import type { AwardRow } from '../data/queries';
+import { awardText, langOf, quoteTitle, routesFor, t } from '../i18n';
 
 interface Props {
   rows: AwardRow[];
 }
 
 const { rows } = Astro.props;
+const lang = langOf(Astro.url);
+const routes = routesFor(lang);
+const tx = awardText(lang);
+const zhHref = lang === 'ja' ? 'zh-Hant-TW' : undefined;
 const withPhoto = rows.filter((a) => a.photos?.length);
+/* 日文頁：照片的替代文字用 altJa（沒填就留空，避免讀出中文） */
+const photosOf = (a: AwardRow) => a.photos!.map((p) => ({ src: p.src, alt: lang === 'ja' ? (p.altJa ?? '') : p.alt }));
 ---
 
 <ul class="awards">
@@ -17,13 +23,13 @@ const withPhoto = rows.filter((a) => a.photos?.length);
     rows.map((a) => (
       <li class="aw">
         <span class="aw__year num">{a.year}</span>
-        <span class="aw__event">{a.title}</span>
-        <span class:list={['aw__result', a.winner && 'is-winner']}>{a.result}</span>
+        <span class="aw__event">{tx.title(a.title)}</span>
+        <span class:list={['aw__result', a.winner && 'is-winner']}>{tx.result(a.result)}</span>
         <span class="aw__work">
           {a.workSlug ? (
-            <a href={routes.work(a.workSlug)}>《{a.workTitle}》</a>
+            <a href={routes.work(a.workSlug)} hreflang={zhHref}>{quoteTitle(lang, a.workTitle!)}</a>
           ) : a.workTitle ? (
-            `《${a.workTitle}》`
+            quoteTitle(lang, a.workTitle)
           ) : (
             ''
           )}
@@ -38,11 +44,11 @@ const withPhoto = rows.filter((a) => a.photos?.length);
     <div class="aw-photos">
       {withPhoto.map((a) => (
         <AwardPhoto
-          photos={a.photos!}
-          label={a.photoLabel ?? '獎狀'}
+          photos={photosOf(a)}
+          label={tx.photoLabel(a.photoLabel ?? t('zh-Hant').awards.photoLabel)}
           year={a.year}
-          title={a.title}
-          result={a.result}
+          title={tx.title(a.title)}
+          result={tx.result(a.result)}
           workTitle={a.workTitle}
           workHref={a.workSlug && routes.work(a.workSlug)}
         />
@@ -68,6 +74,12 @@ const withPhoto = rows.filter((a) => a.photos?.length);
     gap: var(--space-lg);
     padding: var(--space-lg) 0;
     border-bottom: 1px solid var(--line);
+  }
+  /* 日文名次較長（ファイナリスト、ノミネート），名次欄放寬到一行放得下（手機版是兩欄，不受影響） */
+  @media (min-width: 641px) {
+    .aw:lang(ja) {
+      grid-template-columns: 72px minmax(0, 2fr) 128px minmax(0, 1.3fr);
+    }
   }
   .aw__year {
     font-size: 14px;

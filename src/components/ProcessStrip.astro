@@ -4,29 +4,34 @@
  * 有 href 的步驟會出現「看實際範例」連結；current 是目前所在方法頁的步驟編號，該格加亮、不放連結
  */
 import { PROCESS } from '../data/services.mjs';
+import { PROCESS_JA } from '../data/services.ja.mjs';
 import { href } from '../data/site';
+import { langOf, t } from '../i18n';
 
 interface Props {
   current?: string;
 }
 
 const { current } = Astro.props;
+const lang = langOf(Astro.url);
+const steps = lang === 'ja' ? PROCESS_JA : PROCESS;
+const copy = t(lang).process;
 ---
 
-<div class="strip-wrap" tabindex="0" role="region" aria-label="製作流程六個步驟（可左右捲動）">
+<div class="strip-wrap" tabindex="0" role="region" aria-label={copy.aria}>
   <ol class="strip">
     {
-      PROCESS.map((step) => {
+      steps.map((step) => {
         const isCurrent = step.no === current;
         return (
           <li class:list={['step', isCurrent && 'is-current']} aria-current={isCurrent ? 'step' : undefined}>
             <span class="step__no num">{step.no}</span>
             <h3>{step.name}</h3>
             <p>{step.body}</p>
-            {step.key && <span class="step__key">幻五的方法</span>}
+            {step.key && <span class="step__key">{copy.key}</span>}
             {step.href && !isCurrent && (
-              <a class="step__link" href={href(step.href)}>
-                {step.linkLabel ?? '看實際範例'}
+              <a class="step__link" href={href(step.href)} hreflang={lang === 'ja' ? 'zh-Hant-TW' : undefined}>
+                {step.linkLabel ?? copy.link}
                 <span class="visually-hidden">：{step.name}</span>
               </a>
             )}
@@ -36,7 +41,7 @@ const { current } = Astro.props;
     }
   </ol>
 </div>
-<p class="process-note">AI 負責生成，導演負責判斷。工具會換代，判斷力不會。</p>
+<p class="process-note">{copy.note}</p>
 
 <style>
   .strip-wrap {

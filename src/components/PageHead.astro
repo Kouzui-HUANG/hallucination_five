@@ -3,7 +3,7 @@
  * 內頁頁首：麵包屑＋h1＋事實列＋導言（麵包屑要與 BaseLayout 的 BreadcrumbList 一致）
  * meta：標題下方的事實（例：作品的類別與年份），每一項一格；不要放只是重複標題的英文
  */
-import { routes } from '../data/site';
+import { langOf, routesFor, t } from '../i18n';
 
 interface Props {
   title: string;
@@ -13,14 +13,17 @@ interface Props {
 }
 
 const { title, lead, meta = [], crumbs = [] } = Astro.props;
+const lang = langOf(Astro.url);
+const c = t(lang).crumbs;
+const routes = routesFor(lang);
 ---
 
 <header class="page-head">
   <div class="container">
     {
       crumbs.length > 0 && (
-        <nav class="crumbs" aria-label="麵包屑">
-          <a href={routes.home()}>首頁</a>
+        <nav class="crumbs" aria-label={c.aria}>
+          <a href={routes.home()}>{c.home}</a>
           {crumbs.map((c) => (
             <>
               <span aria-hidden="true">／</span>

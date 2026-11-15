@@ -24,6 +24,7 @@
 ## Rules
 - 品牌三色不改。紅色每個畫面最多三處，紅底上的字用 `--accent-ink`。
 - 標題（h1、h2、`.f-display`）用 Noto Serif TC 900；build 時只下載用到的字（`astro.config.mjs` 的 `display-font-subset`）。內文用系統黑體，不載中文網路字型。
+- 日文頁（`/ja/`，`html lang="ja"`）：標題換成 Noto Serif JP 900（一樣只下載用到的字）、內文換成日文系統黑體（Hiragino Sans、Noto Sans JP、Yu Gothic），由 `tokens.css` 的 `:root:lang(ja)` 切換，元件不另外寫。作品名用『』。
 - 標籤只有一種：`.label`（內文字體、13px、不加字距、不轉大寫）。不用英文大寫眉標、不用區塊編號、不在連結文字後面接箭頭。
 - 數字與時間碼用 `.num`（Archivo 等寬數字），不用等寬字型當裝飾。大數字用 `--font-figure`：數字 Archivo，中文落到標題字。
 - 中文只在詞組邊界換行：build 時插入 `<wbr>`（`astro.config.mjs` 的 `phrase-breaks`，BudouX 與 ICU 詞典都同意的位置），配合 `word-break: keep-all`。個別詞組仍可用 `.nobr`。

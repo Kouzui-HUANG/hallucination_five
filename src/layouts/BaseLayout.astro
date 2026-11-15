@@ -2,20 +2,16 @@
 /**
  * BaseLayout — 頁首、選單、頁尾，以及 Organization + WebSite + BreadcrumbList schema 引擎
  * （沿用圖鑑的引擎，換成公司資料；設計文件 §7-1、§9-1）
+ *
+ * 語言由網址決定（/ja/ 開頭是日文）。有對應語言版本的頁面自動輸出 hreflang（zh-Hant-TW ↔ ja-JP，x-default 指向繁中）；
+ * 沒有對應版本的頁面（作品頁、製作方法頁、404），語言切換連到另一個語言的首頁，不輸出 hreflang（設計文件 §7-2）。
  */
 import '../styles/global.css';
-import {
-  SITE,
-  COMPANY,
-  PRIMARY_NAV,
-  FOOTER_SERVICES,
-  href,
-  absUrl,
-  absRoutes,
-  routes,
-  legalNameLine,
-} from '../data/site';
+import { SITE, COMPANY, PRIMARY_NAV, href, absUrl, absRoutes, legalNameLine } from '../data/site';
+import { SERVICES } from '../data/services.mjs';
+import { SERVICES_JA } from '../data/services.ja.mjs';
 import { getSiteData } from '../data/queries';
+import { LANG_META, absRoutesFor, counterpartOf, routesFor, splitLang, t } from '../i18n';
 import Icon from '../components/Icon.astro';
 
 interface Props {
@@ -30,8 +26,6 @@ interface Props {
   schemas?: object[];
   /** 覆寫自動（依 URL path）生成的麵包屑：首頁之後的完整層級，需與頁面可見麵包屑一致 */
   breadcrumbs?: { name: string; item: string }[];
-  /** 其他語言版本（P2 日文版上線後填入，同時輸出 hreflang 與語言切換） */
-  alternates?: { lang: string; label: string; href: string }[];
   noindex?: boolean;
 }
 
@@ -43,26 +37,43 @@ const {
   ogType = 'website',
   schemas = [],
   breadcrumbs,
-  alternates = [],
   noindex = false,
 } = Astro.props;
-
-const brand = `${SITE.name} ${SITE.nameEn}`;
-const metaTitle = seoTitle ?? title;
-const pageTitle = metaTitle ? `${metaTitle}｜${brand}` : `${brand}｜AI 廣告、MV 與短劇製作`;
-const pageDesc = description ?? SITE.description;
 
 /* 去掉 base 之後的 path（canonical、麵包屑、nav 高亮共用） */
 const basePrefix = SITE.base === '/' ? '' : SITE.base;
 const pathNoBase = Astro.url.pathname.startsWith(basePrefix)
   ? Astro.url.pathname.slice(basePrefix.length)
   : Astro.url.pathname;
-const pathSegments = pathNoBase.replace(/\/$/, '').split('/').filter(Boolean);
+/* lang：這一頁的語言；pathInLang：去掉 /ja 之後的 path（麵包屑、nav 高亮用） */
+const { lang, path: pathInLang } = splitLang(pathNoBase);
+const dict = t(lang);
+const routes = routesFor(lang);
+const meta = LANG_META[lang];
+const pathSegments = pathInLang.replace(/\/$/, '').split('/').filter(Boolean);
+
+const brand = dict.meta.brand;
+const metaTitle = seoTitle ?? title;
+const pageTitle = metaTitle ? `${metaTitle}｜${brand}` : `${brand}｜${dict.meta.homeSuffix}`;
+const pageDesc = description ?? dict.meta.description;
 
 /* 404 頁實際輸出為 /404.html（GitHub Pages 以此檔回應所有不存在的網址） */
 const canonicalUrl = /^\/404(\/|\.html)?$/.test(pathNoBase)
   ? absUrl('/404.html')
   : new URL(Astro.url.pathname, SITE.origin).toString();
+/* 另一個語言版本：equivalent 時輸出 hreflang（雙向），否則只當語言切換的去處 */
+const other = counterpartOf(pathNoBase);
+const otherMeta = LANG_META[other.lang];
+const zhUrl = lang === 'zh-Hant' ? canonicalUrl : absUrl(other.path);
+const jaUrl = lang === 'ja' ? canonicalUrl : absUrl(other.path);
+const switchItems = (['zh-Hant', 'ja'] as const).map((l) => ({
+  lang: l,
+  label: t(l).langSwitch.label,
+  name: t(l).langSwitch.name,
+  hreflang: LANG_META[l].hreflang,
+  href: l === lang ? null : href(other.path),
+}));
+
 const ogImageUrl = /^https?:/.test(ogImage)
   ? ogImage
   : ogImage.startsWith(SITE.base) && SITE.base !== '/'
@@ -118,21 +129,23 @@ const webSiteSchema = {
   alternateName: SITE.nameEn,
   description: SITE.description,
   publisher: { '@id': absRoutes.organizationId() },
-  inLanguage: SITE.locale,
+  inLanguage: [LANG_META['zh-Hant'].hreflang, LANG_META.ja.hreflang],
 };
 
 /* ── BreadcrumbList：依 URL path 自動生成（動態頁請自行傳 breadcrumbs） ── */
 const breadcrumbLabels: Record<string, string> = {
-  works: '作品',
-  services: '服務',
-  about: '關於幻五',
-  team: '創辦人',
-  contact: '洽詢',
-  privacy: '隱私權政策',
+  works: dict.crumbs.works,
+  services: dict.crumbs.services,
+  about: dict.crumbs.about,
+  team: dict.crumbs.team,
+  contact: dict.crumbs.contact,
+  privacy: dict.crumbs.privacy,
 };
+const homeUrl = absRoutesFor(lang).home();
+const langPrefix = meta.prefix;
 
 type BreadcrumbItem = { '@type': 'ListItem'; position: number; name: string; item: string };
-const breadcrumbItems: BreadcrumbItem[] = [{ '@type': 'ListItem', position: 1, name: '首頁', item: `${SITE.url}/` }];
+const breadcrumbItems: BreadcrumbItem[] = [{ '@type': 'ListItem', position: 1, name: dict.crumbs.home, item: homeUrl }];
 
 if (breadcrumbs) {
   breadcrumbs.forEach((b, i) => {
@@ -146,7 +159,7 @@ if (breadcrumbs) {
       '@type': 'ListItem',
       position: i + 2,
       name: breadcrumbLabels[seg] ?? seg,
-      item: `${SITE.url}${cumulativePath}/`,
+      item: `${SITE.url}${langPrefix}${cumulativePath}/`,
     });
   });
 }
@@ -160,10 +173,17 @@ const allSchemas = [organizationSchema, webSiteSchema, ...(breadcrumbSchema ? [b
 
 const FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap';
 
-/* 標題字型 Noto Serif TC：build 時由 astro.config.mjs 的 display-font-subset 把佔位字串換成
-   全站 h1、h2、.f-display 用到的字（text= 子集，只下載幾十 KB）；dev 時直接載整套（依 unicode-range 分片） */
-const DISPLAY_FONT_BASE = 'https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap';
-const DISPLAY_FONT_CSS = import.meta.env.DEV ? DISPLAY_FONT_BASE : `${DISPLAY_FONT_BASE}&text=__H5_DISPLAY_TEXT__`;
+/* 標題字型：繁中頁 Noto Serif TC、日文頁 Noto Serif JP（字形依日本規範）。build 時由 astro.config.mjs 的
+   display-font-subset 把佔位字串換成同語言頁面 h1、h2、.f-display 用到的字（text= 子集，只下載幾十 KB）；
+   dev 時直接載整套（依 unicode-range 分片） */
+const DISPLAY_FONT = {
+  'zh-Hant': { base: 'https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&display=swap', placeholder: '__H5_DISPLAY_TEXT__' },
+  ja: { base: 'https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&display=swap', placeholder: '__H5_DISPLAY_TEXT_JA__' },
+}[lang];
+const DISPLAY_FONT_CSS = import.meta.env.DEV ? DISPLAY_FONT.base : `${DISPLAY_FONT.base}&text=${DISPLAY_FONT.placeholder}`;
+
+/* 頁尾：服務欄與公司欄 */
+const footerServices = (lang === 'ja' ? SERVICES_JA : SERVICES).map((s) => ({ label: s.name, href: routes.service(s.slug) }));
 
 // 版權年：build 時取當下台北年份
 const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
@@ -171,6 +191,7 @@ const currentYear = new Date(Date.now() + 8 * 3600 * 1000).getUTCFullYear();
 /* 目前所在的主分區（nav 高亮；/team/ 歸在「關於」） */
 /* /team/ 歸在「關於」、/process/（製作流程方法頁）歸在「服務」 */
 const sectionAlias: Record<string, string> = { team: 'about', process: 'services' };
+const navLabel = (navHref: string) => dict.layout.nav[navHref.replace(/\//g, '') as keyof typeof dict.layout.nav];
 const firstSegment = pathSegments[0] ?? '';
 const currentSection = sectionAlias[firstSegment] ?? firstSegment;
 const navIsActive = (navHref: string) => currentSection === navHref.replace(/\//g, '');
@@ -180,7 +201,7 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
 ---
 
 <!doctype html>
-<html lang={SITE.locale}>
+<html lang={meta.htmlLang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -192,13 +213,11 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
     <meta name="theme-color" content={SITE.themeColor} />
     <link rel="canonical" href={canonicalUrl} />
     {
-      alternates.length > 0 && (
+      other.equivalent && (
         <>
-          <link rel="alternate" hreflang="zh-Hant-TW" href={canonicalUrl} />
-          {alternates.map((a) => (
-            <link rel="alternate" hreflang={a.lang} href={absUrl(a.href)} />
-          ))}
-          <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+          <link rel="alternate" hreflang={LANG_META['zh-Hant'].hreflang} href={zhUrl} />
+          <link rel="alternate" hreflang={LANG_META.ja.hreflang} href={jaUrl} />
+          <link rel="alternate" hreflang="x-default" href={zhUrl} />
         </>
       )
     }
@@ -213,8 +232,9 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
     <meta property="og:description" content={pageDesc} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:alt" content={`${pageTitle} 分享縮圖`} />
-    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:image:alt" content={dict.meta.ogImageAlt(pageTitle)} />
+    <meta property="og:locale" content={meta.ogLocale} />
+    {other.equivalent && <meta property="og:locale:alternate" content={otherMeta.ogLocale} />}
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -241,48 +261,60 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
     <title>{pageTitle}</title>
   </head>
   <body>
-    <a href="#main" class="skip">跳至主要內容</a>
+    <a href="#main" class="skip">{dict.layout.skip}</a>
 
     <header class="hd">
-      <a class="brand" href={routes.home()} aria-label={`${brand} 首頁`}>
+      <a class="brand" href={routes.home()} aria-label={dict.layout.homeAria(brand)}>
         <span class="brand__zh">{SITE.name}</span>
         <span class="brand__en">{SITE.nameEn}</span>
       </a>
-      <nav class="nav" aria-label="主選單">
+      <nav class="nav" aria-label={dict.layout.navAria}>
         {
           PRIMARY_NAV.map((item) => (
             <a
-              href={href(item.href)}
+              href={href(`${langPrefix}${item.href}`)}
               class:list={['nav__link', navIsActive(item.href) && 'is-active']}
               aria-current={navIsActive(item.href) ? 'page' : undefined}
             >
-              {item.label}
+              {navLabel(item.href)}
             </a>
           ))
         }
       </nav>
       <div class="hd__right">
-        {
-          alternates.length > 0 && (
-            <span class="lang">
-              <b>中</b>
-              {alternates.map((a) => (
-                <>
-                  <span aria-hidden="true">｜</span>
-                  <a href={href(a.href)} hreflang={a.lang} lang={a.lang}>
-                    {a.label}
+        <nav class="lang" aria-label={dict.layout.langAria}>
+          {
+            switchItems.map((s, i) => (
+              <>
+                {i > 0 && <span aria-hidden="true">｜</span>}
+                {s.href ? (
+                  <a href={s.href} hreflang={s.hreflang} lang={s.lang} aria-label={s.name}>
+                    {s.label}
                   </a>
-                </>
-              ))}
-            </span>
-          )
-        }
-        <a class:list={['btn', navCtaTone, 'btn--sm', 'hd__cta']} href={routes.contact()}>專案洽詢</a>
+                ) : (
+                  <b lang={s.lang} aria-current="true">
+                    <span aria-hidden="true">{s.label}</span>
+                    <span class="visually-hidden">{s.name}</span>
+                  </b>
+                )}
+              </>
+            ))
+          }
+        </nav>
+        <a class:list={['btn', navCtaTone, 'btn--sm', 'hd__cta']} href={routes.contact()}>{dict.layout.cta}</a>
         <details class="menu">
-          <summary aria-label="開啟選單">選單</summary>
-          <nav class="menu__panel" aria-label="行動版選單">
-            {PRIMARY_NAV.map((item) => <a href={href(item.href)}>{item.label}</a>)}
-            {alternates.map((a) => <a href={href(a.href)} lang={a.lang}>{a.label}</a>)}
+          <summary aria-label={dict.layout.menuOpen}>{dict.layout.menu}</summary>
+          <nav class="menu__panel" aria-label={dict.layout.menuAria}>
+            {PRIMARY_NAV.map((item) => <a href={href(`${langPrefix}${item.href}`)}>{navLabel(item.href)}</a>)}
+            {
+              switchItems
+                .filter((s) => s.href)
+                .map((s) => (
+                  <a href={s.href!} hreflang={s.hreflang} lang={s.lang}>
+                    {s.name}
+                  </a>
+                ))
+            }
           </nav>
         </details>
       </div>
@@ -300,36 +332,36 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
               <span class="brand__zh">{SITE.name}</span>
               <span class="brand__en">{SITE.nameEn}</span>
             </a>
-            <p>{SITE.tagline}<br />AI 廣告、MV 與短劇製作，以及 AI 影片課程與導入顧問。</p>
+            <p>{dict.layout.tagline}<br />{dict.layout.footerBlurb}</p>
             <p><a class="ft__mail" href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-            <p>台北</p>
+            <p>{dict.layout.city}</p>
           </div>
           <div>
-            <p class="ft__h">服務</p>
+            <p class="ft__h">{dict.layout.footServices}</p>
             <ul class="ft__list">
-              {FOOTER_SERVICES.map((n) => <li><a href={href(n.href)}>{n.label}</a></li>)}
+              {footerServices.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
             </ul>
           </div>
           <div>
-            <p class="ft__h">公司</p>
+            <p class="ft__h">{dict.layout.footCompany}</p>
             <ul class="ft__list">
-              <li><a href={routes.about()}>關於幻五</a></li>
+              <li><a href={routes.about()}>{dict.layout.aboutLink}</a></li>
               {team.map((m) => <li><a href={routes.team(m.id)}>{m.data.name}</a></li>)}
-              <li><a href={routes.contact()}>洽詢</a></li>
-              <li><a href={routes.privacy()}>隱私權政策</a></li>
+              <li><a href={routes.contact()}>{dict.layout.contactLink}</a></li>
+              <li><a href={routes.privacy()}>{dict.layout.privacyLink}</a></li>
             </ul>
           </div>
           <div>
-            <p class="ft__h">相關計畫</p>
+            <p class="ft__h">{dict.layout.footRelated}</p>
             <ul class="ft__list">
               <li>
-                <a href={SITE.directory.url}>{SITE.directory.name} <Icon name="external" size={14} /></a>
+                <a href={SITE.directory.url} hreflang={lang === 'ja' ? 'zh-Hant-TW' : undefined}>{SITE.directory.name}{dict.layout.directoryNote} <Icon name="external" size={14} /></a>
               </li>
             </ul>
           </div>
         </div>
         <div class="ft__legal">
-          <span>{legalNameLine()}{COMPANY.taxId && `・統一編號 ${COMPANY.taxId}`}</span>
+          <span>{legalNameLine(lang)}{COMPANY.taxId && dict.layout.taxId(COMPANY.taxId)}</span>
           <span class="latin">© {currentYear} {SITE.nameEn}</span>
         </div>
       </div>
@@ -423,6 +455,12 @@ const navCtaTone = currentSection === '' || currentSection === 'contact' ? 'btn-
       }
       .lang b {
         font-weight: 600;
+        color: var(--text);
+      }
+      .lang a {
+        transition: color var(--dur-short);
+      }
+      .lang a:hover {
         color: var(--text);
       }
       .menu {

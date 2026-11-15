@@ -8,6 +8,7 @@ durationSec: 50
 videoUrl: "https://www.youtube.com/watch?v=bVre_gRG-m0"
 thumb: "./thumbs/pet-workshop.jpg"
 thumbAlt: "一隻戴銀色大領結的棕色貴賓狗走在伸展台上，兩側是觀眾與舞台燈光"
+thumbAltJa: "銀色の大きな蝶ネクタイをつけた茶色のプードルがランウェイを歩いている。両側に観客と舞台照明"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

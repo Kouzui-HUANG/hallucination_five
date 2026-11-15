@@ -7,7 +7,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 - 設計文件：[docs/plans/2026-10-28-hallucination-five-site-design.md](docs/plans/2026-10-28-hallucination-five-site-design.md)
 - 首頁 mockup：[docs/mockups/home.html](docs/mockups/home.html)
-- 目前階段：**P1（繁體中文版）**。日文版 `/ja/` 是 P2，原創 IP 與消息頁是 P3
+- 目前階段：**P1（繁體中文版）上線；P2 日文版 `/ja/` 已建好，待黃宏瑞校對日文後上線**。原創 IP 與消息頁是 P3
 
 ---
 
@@ -36,7 +36,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ### 頁面
 
-建置後共 25 個頁面加上 404：
+建置後共 37 個頁面加上 404（繁中 25 頁、日文 12 頁）：
 
 | 路由 | 內容 |
 |---|---|
@@ -52,6 +52,16 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 | `/privacy/` | 隱私權政策（本站不用分析工具、不設追蹤 cookie） |
 
 主選單只有四項：作品／服務／關於／聯絡。課程不放主選單，放在服務底下。
+
+### 日文版（`/ja/`）
+
+`/ja/`、`/ja/works/`、`/ja/services/`、`/ja/services/<slug>/`、`/ja/about/`、`/ja/team/<slug>/`、`/ja/contact/`、`/ja/privacy/`，共 12 頁（設計文件 §2-1）。
+
+- 作品頁與 `/process/previs/` 只有繁中：日文頁的作品卡連到繁中作品頁，資訊列標「中国語ページ」；片名、法定名稱、賽事與平台名照原文
+- 兩種語言共用同一個 view（`src/views/*.astro`），語言由網址決定，所以版面與樣式只有一份
+- 有對應版本的頁面自動輸出 `hreflang`（`zh-Hant-TW` ↔ `ja-JP`，`x-default` 指向繁中），sitemap 也帶 alternate；頁首右側的「中｜日」切換到對應頁，沒有對應頁時（作品頁、404）連到另一個語言的首頁
+- 日文頁的內文用日文系統黑體、標題用 Noto Serif JP（同樣只下載用到的字），斷行用日文的 BudouX
+- 日文版跟繁中刻意不同的地方：商業影片的常見問題少了「AI 廣告投放的效果如何？」（羿麗 IH 爐那題）、「發票」寫成「請求書」、公開課程註明是中文實體課（見 `src/data/services.ja.mjs` 開頭）
 
 ### 四項服務
 
@@ -174,21 +184,29 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 │   ├── check-integrity.mjs        # npm run check
 │   └── gen-brand-assets.mjs       # npm run brand-assets
 └── src/
-    ├── content.config.ts          # works / team 的 schema
+    ├── content.config.ts          # works / team / teamJa 的 schema
     ├── content/
     │   ├── works/<slug>.md        # 作品；縮圖在 works/thumbs/<slug>.jpg
-    │   └── team/<slug>/index.md   # 創辦人；同資料夾放 portrait.jpg
+    │   └── team/<slug>/
+    │       ├── index.md           # 創辦人；同資料夾放 portrait.jpg
+    │       └── ja.md              # 創辦人的日文介紹（只放要翻譯的欄位與本文）
+    ├── i18n/
+    │   ├── index.ts               # 語言判斷、hreflang、routesFor(lang)、t(lang)
+    │   ├── zh-Hant.mjs            # 繁中介面與頁面字串
+    │   └── ja.mjs                 # 日文字串（鍵與繁中一一對應）＋獎項名稱的日文
     ├── data/
     │   ├── site.ts                # 站名、信箱、社群、公司登記資料、路由 helper、主選單
     │   ├── services.mjs           # 四項服務、交付內容、FAQ、製作流程
+    │   ├── services.ja.mjs        # 同上的日文版
     │   ├── courses.mjs            # 課程
     │   ├── clients.mjs            # 合作夥伴
     │   ├── categories.ts          # 作品類別（受控詞彙）
     │   ├── queries.ts             # 頁面唯一的資料入口
     │   └── llms-pages.mjs         # llms.txt 頁面清單
     ├── components/                # WorkCard、DevCard、VideoFacade、AwardsList…
-    ├── layouts/BaseLayout.astro   # <head>、全站 JSON-LD、header、footer
-    ├── pages/                     # 路由
+    ├── layouts/BaseLayout.astro   # <head>、全站 JSON-LD、hreflang、header、footer、語言切換
+    ├── views/                     # 頁面內容與版面（繁中、日文共用）
+    ├── pages/                     # 路由：每頁只是引用 views/ 的一行；日文在 pages/ja/
     └── styles/
         ├── tokens.css             # 色彩、字體、字級、間距 token
         └── global.css             # 全站樣式（第一行是 Hallmark 的設計紀錄）
@@ -198,7 +216,8 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 - 頁面一律從 `getSiteData()`（`src/data/queries.ts`）拿資料，不直接呼叫 `getCollection`。這裡統一做草稿過濾、排序、精選挑選、作品 → 創辦人反查與獲獎彙整
 - 關聯只做單向：作品的 `directors` 指向 `team`；創辦人頁的作品列表在建置時反查
-- 站內連結一律經過 `routes.*` / `href()` 加上 base，絕對網址用 `absRoutes.*`，不要手拼字串
+- 站內連結一律經過 `routes.*` / `href()` 加上 base，絕對網址用 `absRoutes.*`，不要手拼字串；元件與 view 裡用 `routesFor(langOf(Astro.url))`，日文頁才會連到 `/ja/`
+- 頁面字串不寫在 view 裡：繁中在 `src/i18n/zh-Hant.mjs`、日文在 `ja.mjs`，用 `t(lang)` 取
 - `services.mjs`、`courses.mjs`、`clients.mjs` 寫成 `.mjs`，因為 `astro.config.mjs` 與檢查腳本是純 Node，不能 import TS
 
 ---
@@ -222,12 +241,13 @@ npm run brand-assets  # 重新產生 favicon、logo.png、og-default.png
 |---|---|
 | 作品 | `src/content/works/<slug>.md`，縮圖放 `src/content/works/thumbs/<slug>.jpg`（1280×720） |
 | 創辦人 | `src/content/team/<slug>/index.md` 與同資料夾的 `portrait.jpg`（4:5） |
-| 四項服務、製作流程、常見問題 | `src/data/services.mjs` |
-| 課程 | `src/data/courses.mjs` |
+| 創辦人的日文介紹 | `src/content/team/<slug>/ja.md` |
+| 四項服務、製作流程、常見問題 | `src/data/services.mjs`（日文 `services.ja.mjs`） |
+| 課程 | `src/data/courses.mjs`（日文標題 `titleJa` 等欄位） |
 | 合作夥伴（客戶同意後才把 `approved` 改成 `true`） | `src/data/clients.mjs` |
-| 公司名稱、統一編號、信箱、洽詢表單、社群帳號 | `src/data/site.ts` 的 `SITE` 與 `COMPANY` |
-| 首頁的數字區 | `src/pages/index.astro` 的 `stats` |
-| 關於頁的沿革與「我們相信的事」 | `src/pages/about.astro` 的 `history` 與 `beliefs` |
+| 公司名稱、統一編號、信箱、洽詢表單、社群帳號 | `src/data/site.ts` 的 `SITE` 與 `COMPANY`（日文表單 `contactFormUrlJa`） |
+| 各頁的標題、導言、首頁的數字區、關於頁的沿革與「我們相信的事」、聯絡頁與隱私權政策 | `src/i18n/zh-Hant.mjs`，日文同一個鍵在 `src/i18n/ja.mjs` |
+| 獎項名稱與名次的日文 | `src/i18n/ja.mjs` 的 `AWARDS_JA` |
 
 ### 新增一件作品
 
@@ -242,6 +262,7 @@ durationSec: 90                # 連續劇改填 episodes: 30
 videoUrl: "https://www.youtube.com/watch?v=..."  # 不能公開影片時留空，改給 stills
 thumb: "./thumbs/my-work.jpg"
 thumbAlt: "縮圖的文字描述"
+thumbAltJa: "日文頁用的縮圖描述"  # 選填；沒填的話日文頁的 alt 留空
 directors: ["lin-chung-yen"]   # 第一位是主要導演
 client: "委託方"                # 選填
 platform: "上架平台"            # 選填
@@ -255,6 +276,7 @@ awards:
     photos:                    # 選填：獎盃、獎狀照片，會出現在作品頁、首頁與創辦人頁的獲獎區
       - src: "./awards/my-work.jpg"
         alt: "照片的文字描述"
+        altJa: "日文頁用的照片描述" # 選填
         person: "lin-chung-yen" # 選填：個人獎狀，該創辦人頁只顯示本人那張
 featured: false                # 首頁精選最多 6 件
 order: 7                       # 精選排序，1 是大卡
@@ -267,8 +289,8 @@ order: 7                       # 精選排序，1 是大卡
 
 `npm run check` 在 CI 建置前執行：
 
-- **錯誤（擋部署）**：frontmatter 缺欄位、日期沒加引號、縮圖、肖像或獎項照片不存在、導演或製作名單指到不存在的成員、作品沒有影片也沒有劇照、精選超過 6 件或排序重複、服務 slug 重複
-- **提醒（不擋部署）**：上線前要補的資料，見下方清單
+- **錯誤（擋部署）**：frontmatter 缺欄位、日期沒加引號、縮圖、肖像或獎項照片不存在、導演或製作名單指到不存在的成員、作品沒有影片也沒有劇照、精選超過 6 件或排序重複、服務 slug 重複；日文版缺漏（`ja.mjs` 的鍵、型別或陣列長度跟繁中不一致、`services.ja.mjs` 缺項、創辦人缺 `ja.md`、課程缺日文標題）
+- **提醒（不擋部署）**：上線前要補的資料，見下方清單；日文頁會顯示原文或空白的地方（賽事名沒有日文、作品沒有 `thumbAltJa`）
 
 ---
 
@@ -283,6 +305,8 @@ order: 7                       # 精選排序，1 是大卡
 - [ ] 合作夥伴取得授權後把 `approved` 改成 `true`（一筆都沒有時首頁不顯示該區）
 - [ ] 公司社群帳號（`SITE.social`）
 - [ ] 黃宏瑞的線上課程連結（`src/data/courses.mjs`）
+- [ ] 黃宏瑞校對日文版（`src/i18n/ja.mjs`、`src/data/services.ja.mjs`、`src/content/team/*/ja.md`、作品的 `thumbAltJa`）
+- [ ] 日文洽詢用的 Google 表單（`SITE.contactFormUrlJa`；預算用萬円級距）
 
 ---
 
@@ -304,7 +328,7 @@ push 到 `main`（或手動觸發 workflow）就會跑：`npm ci` → `npm run c
 
 ## 接下來
 
-- **P2**：日文版（`/ja/` 首頁、服務、關於、創辦人、聯絡；作品頁維持繁中）
+- **P2**：日文版（`/ja/` 首頁、服務、關於、創辦人、聯絡；作品頁維持繁中）已建好，待校對；圖鑑 `/about/` 揭露、平手條款搬家還沒做
 - **P3**：原創 IP 頁 `/originals/`（粽乩宇宙等）、消息頁 `/news/`
 
 現階段不做：線上付款與金流、會員與後台 CMS（維持 Markdown ＋ git）、英文版、大量內容行銷文章。

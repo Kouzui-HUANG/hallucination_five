@@ -1,6 +1,7 @@
 ---
 /** 獎項的實體照片（獎盃、獎狀）：作品頁與獲獎列表共用；有 workTitle 才顯示作品名 */
 import { Image } from 'astro:assets';
+import { langOf, quoteTitle } from '../i18n';
 
 interface Props {
   photos: { src: ImageMetadata; alt: string }[];
@@ -13,6 +14,8 @@ interface Props {
 }
 
 const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
+const lang = langOf(Astro.url);
+const quoted = workTitle && quoteTitle(lang, workTitle);
 ---
 
 <figure class:list={['aw-photo', photos.length > 1 && 'aw-photo--multi']}>
@@ -24,7 +27,7 @@ const { photos, label, year, title, result, workTitle, workHref } = Astro.props;
   <figcaption class="aw-photo__cap">
     <span class="aw-photo__label label">{label}</span>
     <span class="aw-photo__title">{year} {title} {result}</span>
-    {workTitle && (workHref ? <a href={workHref}>《{workTitle}》</a> : <span>《{workTitle}》</span>)}
+    {quoted && (workHref ? <a href={workHref} hreflang={lang === 'ja' ? 'zh-Hant-TW' : undefined}>{quoted}</a> : <span>{quoted}</span>)}
   </figcaption>
 </figure>
 

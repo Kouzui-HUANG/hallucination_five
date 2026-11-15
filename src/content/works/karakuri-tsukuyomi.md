@@ -8,6 +8,7 @@ durationSec: 151
 videoUrl: "https://www.youtube.com/watch?v=uqAJNS-f3mc"
 thumb: "./thumbs/karakuri-tsukuyomi.jpg"
 thumbAlt: "深夜和室裡的賽博藝妓，紫髮盤髻、機械義肢，身穿藍色浴衣，畫面疊著毛筆字「絡繰月詠」"
+thumbAltJa: "深夜の和室にいるサイバー芸妓。紫の髪を結い上げ、機械の義肢を持ち、青い浴衣を着ている。画面に毛筆の「絡繰月詠」の文字"
 directors: ["huang-hung-jui"]
 credits:
   - role: "導演"

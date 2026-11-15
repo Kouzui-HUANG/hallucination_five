@@ -8,6 +8,7 @@ durationSec: 164
 videoUrl: "https://www.youtube.com/watch?v=uY5PunTzxqg"
 thumb: "./thumbs/memory-shop-twilight.jpg"
 thumbAlt: "夕陽下的貨櫃回收場，短髮少女穿米色針織外套回望鏡頭，遠處貨櫃上有青色霓虹字"
+thumbAltJa: "夕日に染まるコンテナの集積場で、ベージュのニットカーディガンを着た短髪の少女が振り返ってこちらを見ている。奥のコンテナに青いネオンの文字"
 directors: ["huang-hung-jui"]
 credits:
   - role: "導演・作詞"

@@ -1,6 +1,7 @@
 ---
 /** 頁面底部的洽詢帶 */
-import { SITE, routes } from '../data/site';
+import { SITE } from '../data/site';
+import { langOf, routesFor, t } from '../i18n';
 
 interface Props {
   title?: string;
@@ -10,12 +11,10 @@ interface Props {
   secondary?: { label: string; href: string };
 }
 
-const {
-  title = '有一個想拍的故事？',
-  lead = '告訴我們用途、片長與時程，我們會在兩個工作天內回覆。',
-  service,
-  secondary,
-} = Astro.props;
+const lang = langOf(Astro.url);
+const copy = t(lang).cta;
+const routes = routesFor(lang);
+const { title = copy.title, lead = copy.lead, service, secondary } = Astro.props;
 ---
 
 <section class="cta" aria-labelledby="cta-title">
@@ -23,7 +22,7 @@ const {
     <h2 class="cta__title" id="cta-title">{title}</h2>
     <p class="cta__lead">{lead}</p>
     <div class="cta__actions">
-      <a class="btn btn--accent btn--lg" href={routes.contact(service)}>專案洽詢</a>
+      <a class="btn btn--accent btn--lg" href={routes.contact(service)}>{copy.button}</a>
       {secondary && <a class="btn btn--ghost btn--lg" href={secondary.href}>{secondary.label}</a>}
     </div>
     <p class="cta__mail"><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>

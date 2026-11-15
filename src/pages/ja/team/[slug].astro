@@ -1,0 +1,12 @@
+---
+/** /ja/team/<slug>/ — 日文版（內容與版面在 src/views/TeamPage.astro，兩種語言共用） */
+import TeamPage from '../../../views/TeamPage.astro';
+import { getSiteData } from '../../../data/queries';
+
+export async function getStaticPaths() {
+  const { team } = await getSiteData();
+  return team.map((m) => ({ params: { slug: m.id } }));
+}
+---
+
+<TeamPage slug={Astro.params.slug!} />

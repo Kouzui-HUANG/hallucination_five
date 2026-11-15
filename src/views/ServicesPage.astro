@@ -1,0 +1,49 @@
+---
+/** 服務總覽（/services/ 與 /ja/services/ 共用）：四項服務＋製作流程 */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import ServiceList from '../components/ServiceList.astro';
+import ProcessStrip from '../components/ProcessStrip.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SERVICES } from '../data/services.mjs';
+import { SERVICES_JA } from '../data/services.ja.mjs';
+import { absRoutesFor, langOf, routesFor, t } from '../i18n';
+
+const lang = langOf(Astro.url);
+const copy = t(lang).services;
+const routes = routesFor(lang);
+const absRoutes = absRoutesFor(lang);
+const services = lang === 'ja' ? SERVICES_JA : SERVICES;
+
+const listSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: copy.schemaName,
+  itemListElement: services.map((s, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: absRoutes.service(s.slug),
+    name: s.name,
+  })),
+};
+---
+
+<BaseLayout title={copy.title} seoTitle={copy.seoTitle} description={copy.description} schemas={[listSchema]}>
+  <PageHead title={copy.heading} lead={copy.lead} crumbs={[{ label: t(lang).crumbs.services }]} />
+
+  <section class="section" aria-label={copy.listAria}>
+    <div class="container">
+      <ServiceList />
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead title={copy.processTitle} id="process-title" link={{ href: routes.works(), label: copy.processLink }} />
+      <ProcessStrip />
+    </div>
+  </section>
+
+  <CtaBand secondary={{ label: copy.ctaSecondary, href: routes.contact('training') }} />
+</BaseLayout>

@@ -8,6 +8,7 @@ durationSec: 44
 videoUrl: "https://www.youtube.com/watch?v=L5-RwoCy6jk"
 thumb: "./thumbs/comfilife-ceiling-fan.jpg"
 thumbAlt: "懷舊色調的電扇行裡，一位老師傅與一名年輕人在工作台前整理電扇，牆上與窗邊掛滿各式電扇"
+thumbAltJa: "レトロな色調の扇風機店で、年配の職人と若者が作業台で扇風機を手入れしている。壁や窓辺にはさまざまな扇風機が並ぶ"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

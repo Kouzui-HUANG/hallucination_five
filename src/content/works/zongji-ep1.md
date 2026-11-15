@@ -8,6 +8,7 @@ durationSec: 235
 videoUrl: "https://www.youtube.com/watch?v=3NawYqnUEuM"
 thumb: "./thumbs/zongji-ep1.jpg"
 thumbAlt: "雨夜廟埕前，一名西裝男子舉起燃著火光的八卦鏡直視鏡頭，身後遠處站著一個長髮女鬼的模糊身影"
+thumbAltJa: "雨の夜の廟の前で、スーツ姿の男性が炎の灯る八卦鏡を掲げてこちらを見据えている。後方に長い髪の女の幽霊のぼやけた姿"
 directors: ["lin-chung-yen"]
 credits:
   - role: "導演"

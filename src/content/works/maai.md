@@ -8,6 +8,7 @@ durationSec: 509
 videoUrl: "https://www.youtube.com/watch?v=N9wCsl673pM"
 thumb: "./thumbs/maai.jpg"
 thumbAlt: "櫻花隧道下三名學生騎單車遠去的逆光背影，畫面中央是毛筆字「間合」，左上角有大賽第二名的桂冠標章"
+thumbAltJa: "桜のトンネルの下を自転車で遠ざかる3人の学生の逆光の後ろ姿。中央に毛筆の「間合」、左上にコンテスト第2位の月桂冠のマーク"
 directors: ["huang-hung-jui", "lin-chung-yen"]
 credits:
   - role: "隊長・主編劇"
@@ -29,9 +30,11 @@ awards:
     photos:
       - src: "./awards/maai-huang-hung-jui.jpg"
         alt: "GMI 頒發的 AI 影視職人創作大賽獎狀，得獎人黃宏瑞，獎項為二獎（Silver Award），日期 2026 年 8 月 30 日，有 GMI Cloud 執行長簽名"
+        altJa: "GMIが授与したAI映像クリエイターコンテストの賞状。受賞者は黃宏瑞、賞は二等賞（Silver Award）、日付は2026年8月30日、GMI CloudのCEOの署名入り"
         person: "huang-hung-jui"
       - src: "./awards/maai-lin-chung-yen.jpg"
         alt: "GMI 頒發的 AI 影視職人創作大賽獎狀，得獎人林仲彥，獎項為二獎（Silver Award），日期 2026 年 8 月 30 日，有 GMI Cloud 執行長簽名"
+        altJa: "GMIが授与したAI映像クリエイターコンテストの賞状。受賞者は林仲彥、賞は二等賞（Silver Award）、日付は2026年8月30日、GMI CloudのCEOの署名入り"
         person: "lin-chung-yen"
 featured: true
 order: 1
