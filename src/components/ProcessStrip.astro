@@ -2,11 +2,12 @@
 /**
  * 製作流程：六格流程條（首頁、服務總覽、方法頁共用）
  * 有 href 的步驟會出現方法頁連結（預設「看實際範例」，linkLabel 可改）；current 是目前所在方法頁的步驟編號，該格加亮、不放連結
+ * 方法頁有日文版（hasJa）時日文頁連到 /ja/ 版，沒有時連到繁中版並標 hreflang
  */
 import { PROCESS } from '../data/services.mjs';
 import { PROCESS_JA } from '../data/services.ja.mjs';
 import { href } from '../data/site';
-import { langOf, t } from '../i18n';
+import { hasJa, langOf, localize, t } from '../i18n';
 
 interface Props {
   current?: string;
@@ -30,7 +31,11 @@ const copy = t(lang).process;
             <p>{step.body}</p>
             {step.key && <span class="step__key">{copy.key}</span>}
             {step.href && !isCurrent && (
-              <a class="step__link" href={href(step.href)} hreflang={lang === 'ja' ? 'zh-Hant-TW' : undefined}>
+              <a
+                class="step__link"
+                href={href(hasJa(step.href) ? localize(step.href, lang) : step.href)}
+                hreflang={lang === 'ja' && !hasJa(step.href) ? 'zh-Hant-TW' : undefined}
+              >
                 {step.linkLabel ?? copy.link}
                 <span class="visually-hidden">：{step.name}</span>
               </a>

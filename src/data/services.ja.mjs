@@ -364,7 +364,7 @@ export const PROCESS_JA = [
     body: 'まず物語を書き上げ、それからどの画面をAIに任せるかを決めます。',
     key: true,
     href: '/process/script/',
-    linkLabel: 'ワークフローを見る（中国語）',
+    linkLabel: 'ワークフローを見る',
   },
   {
     no: '03',

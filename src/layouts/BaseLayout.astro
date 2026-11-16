@@ -4,7 +4,7 @@
  * （沿用圖鑑的引擎，換成公司資料；設計文件 §7-1、§9-1）
  *
  * 語言由網址決定（/ja/ 開頭是日文）。有對應語言版本的頁面自動輸出 hreflang（zh-Hant-TW ↔ ja-JP，x-default 指向繁中）；
- * 沒有對應版本的頁面（作品頁、製作方法頁、404），語言切換連到另一個語言的首頁，不輸出 hreflang（設計文件 §7-2）。
+ * 沒有對應版本的頁面（作品頁、/process/previs/、404），語言切換連到另一個語言的首頁，不輸出 hreflang（設計文件 §7-2）。
  */
 import '../styles/global.css';
 import { SITE, COMPANY, PRIMARY_NAV, href, absUrl, absRoutes, legalNameLine } from '../data/site';

@@ -127,6 +127,12 @@ export const SECTIONS = [
       { path: '/ja/works/', title: '作品', note: 'AI広告、MV、ショートドラマ、短編映画、アニメーション（各作品のページは中国語）', optional: true },
       { path: '/ja/services/', title: 'サービス', note: '商業映像制作、ショートドラマ・シリーズ、講座と企業研修、AI導入コンサルティング', optional: true },
       ...SERVICES_JA.map((s) => ({ path: `/ja/services/${s.slug}/`, title: s.name, note: s.summary, optional: true })),
+      {
+        path: '/ja/process/script/',
+        title: '脚本と絵コンテ',
+        note: '自社開発の4つのAIエージェント（脚本、タイトル企画、コンテ、プロンプト）で、一行のアイデアから映像プロンプトまで仕上げるワークフローと、人が確認するポイント',
+        optional: true,
+      },
       { path: '/ja/about/', title: '幻五映像について', note: '沿革、社名の由来、会社情報', optional: true },
       ...idx.team.map((t) => ({
         path: `/ja/team/${t.id}/`,

@@ -261,11 +261,9 @@ const STATIC_PAGES = [
   ['/about/', ['src/views/AboutPage.astro']],
   ['/contact/', ['src/views/ContactPage.astro']],
   ['/privacy/', ['src/views/PrivacyPage.astro']],
+  ['/process/script/', ['src/views/ProcessScriptPage.astro']],
 ];
-const ZH_ONLY_PAGES = [
-  ['/process/script/', ['src/pages/process/script.astro']],
-  ['/process/previs/', ['src/pages/process/previs.astro']],
-];
+const ZH_ONLY_PAGES = [['/process/previs/', ['src/pages/process/previs.astro']]];
 
 function fileDate(absPath) {
   try {

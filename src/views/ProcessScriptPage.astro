@@ -1,0 +1,377 @@
+---
+/**
+ * 製作流程 FRAME 02「腳本與分鏡」的方法頁（/process/script/ 與 /ja/process/script/ 共用）
+ * 頁首（問題）→ 流程圖（兩段、四個 AI 代理、人工確認點）→ 為什麼拆成四個代理 → 製作流程 → CTA
+ *
+ * 字串在 i18n 的 processScript（繁中 zh-Hant.mjs、日文 ja.mjs）。
+ * 流程圖是內部工作流程的簡化版：每個代理只寫角色、一句原則、產出與人工確認點。
+ * 刻意不寫：skill 名稱、知識庫檔名、內部審稿的關卡清單與數量、失敗檢查的項目、提示詞的欄位格式與字數上限。
+ * 原始的完整流程圖不放進 repo（repo 是公開的）。
+ * 文案用客觀描述，不用第一人稱（CTA 的「我們」是全站慣例）。
+ * schema：WebPage
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import ProcessStrip from '../components/ProcessStrip.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { absRoutes as siteIds } from '../data/site';
+import { LANG_META, absRoutesFor, langOf, routesFor, t } from '../i18n';
+
+const PUBLISHED = '2026-11-16';
+
+type IoNode = { kind: 'io'; label: string; text: string };
+type AgentNode = { kind: 'agent'; no: string; name: string; body: string; output: string; checks: string[] };
+type Lane = { id: string; name: string; sub: string; nodes: (IoNode | AgentNode)[] };
+
+const lang = langOf(Astro.url);
+const dict = t(lang);
+const copy = dict.processScript;
+const routes = routesFor(lang);
+const absRoutes = absRoutesFor(lang);
+
+const lanes = copy.lanes as Lane[];
+const agents = lanes.flatMap((l) => l.nodes).filter((n): n is AgentNode => n.kind === 'agent');
+const checkCount = agents.reduce((sum, a) => sum + a.checks.length, 0);
+
+const pageUrl = absRoutes.process('script');
+const description = copy.description(agents.length, checkCount);
+
+const schemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: `${copy.title}｜${dict.process.key}`,
+    description,
+    inLanguage: LANG_META[lang].hreflang,
+    datePublished: PUBLISHED,
+    isPartOf: { '@id': siteIds.websiteId() },
+    publisher: { '@id': siteIds.organizationId() },
+  },
+];
+---
+
+<BaseLayout
+  title={copy.title}
+  seoTitle={copy.seoTitle}
+  description={description}
+  schemas={schemas}
+  breadcrumbs={[
+    { name: dict.crumbs.services, item: absRoutes.services() },
+    { name: copy.title, item: pageUrl },
+  ]}
+>
+  <PageHead
+    title={copy.title}
+    meta={[copy.meta]}
+    lead={copy.lead}
+    crumbs={[{ label: dict.crumbs.services, href: routes.services() }, { label: copy.title }]}
+  >
+    <dl class="data-grid spec">
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.scope}</dt>
+        <dd class="data-grid__value">{copy.spec.scopeValue}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.agents}</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{agents.length}</span>{copy.spec.agentsUnit}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.checks}</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{checkCount}</span>{copy.spec.checksUnit}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.output}</dt>
+        <dd class="data-grid__value">{copy.spec.outputValue}</dd>
+      </div>
+    </dl>
+  </PageHead>
+
+  <!-- ── 流程圖 ───────────────────────── -->
+  <section class="section" aria-labelledby="flow-title">
+    <div class="container">
+      <SectionHead title={copy.flowTitle} id="flow-title" />
+      <p class="intro">{copy.intro}</p>
+
+      <figure class="chart">
+        {
+          lanes.map((lane) => (
+            <div class="lane">
+              <h3 class="lane__name" id={`lane-${lane.id}`}>
+                <b>{lane.name}</b>
+                <span>{lane.sub}</span>
+              </h3>
+              <ol class="lane__flow" aria-labelledby={`lane-${lane.id}`}>
+                {lane.nodes.map((n, i) => (
+                  <li class:list={['node', `node--${n.kind}`]}>
+                    {i > 0 && (
+                      <span class="node__arrow" aria-hidden="true">
+                        <Icon name="arrow" size={16} />
+                      </span>
+                    )}
+                    {n.kind === 'io' ? (
+                      <>
+                        <span class="node__io-label">{n.label}</span>
+                        <span class="node__io-text">{n.text}</span>
+                      </>
+                    ) : (
+                      <>
+                        <p class="node__no">
+                          <span class="num">{n.no}</span>
+                          {copy.agentLabel}
+                        </p>
+                        <h4 class="node__name">{n.name}</h4>
+                        <p class="node__body">{n.body}</p>
+                        <dl class="node__facts">
+                          <div class="node__fact">
+                            <dt class="node__tag">{copy.outputTag}</dt>
+                            <dd>{n.output}</dd>
+                          </div>
+                          {n.checks.length > 0 && (
+                            <div class="node__fact">
+                              <dt class="node__tag node__tag--check">{copy.checkTag}</dt>
+                              <dd>{n.checks.join('、')}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
+        }
+        <figcaption class="chart__caption">
+          <span class="node__tag node__tag--check">{copy.checkTag}</span>
+          {copy.caption}
+        </figcaption>
+      </figure>
+
+      <div class="turn">
+        <h3 class="turn__h">{copy.whyTitle}</h3>
+        <div class="turn__body">
+          {copy.why.map((p) => <p>{p}</p>)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 在流程裡的位置 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead title={copy.processTitle} id="process-title" link={{ href: routes.services(), label: copy.servicesLink }} />
+      <ProcessStrip current="02" />
+    </div>
+  </section>
+
+  <CtaBand
+    title={copy.ctaTitle}
+    lead={copy.ctaLead}
+    service="series"
+    secondary={{ label: copy.ctaSecondary, href: routes.contact('commercial') }}
+  />
+</BaseLayout>
+
+<style>
+  .spec {
+    max-width: 880px;
+    margin-top: 36px;
+  }
+  .spec dd {
+    margin: 0;
+  }
+  .intro {
+    max-width: 40em;
+    margin-bottom: var(--space-xl);
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--text-soft);
+  }
+
+  /* ── 流程圖 ─────────────────────────────── */
+  .lane + .lane {
+    margin-top: var(--space-xl);
+  }
+  .lane__name {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .lane__name b {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .lane__name span {
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .lane__flow {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 0.7fr);
+    column-gap: var(--space-xl);
+  }
+  .node {
+    position: relative;
+    border: 1px solid var(--line);
+  }
+  /* 節點之間的箭頭（Icon 的 arrow；窄螢幕轉成朝下） */
+  .node__arrow {
+    position: absolute;
+    top: 50%;
+    left: -32px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: var(--muted);
+    transform: translateY(-50%);
+  }
+
+  .node--io {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding: 20px;
+  }
+  .node__io-label {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .node__io-text {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .node--agent {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-lg) var(--space-lg) 20px;
+    background: var(--bg-raised);
+  }
+  .node__no {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .node__name {
+    margin-top: var(--space-2xs);
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .node__body {
+    margin-top: var(--space-sm);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-soft);
+  }
+  .node__facts {
+    display: grid;
+    gap: var(--space-xs);
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .node__fact {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+  .node__fact dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  /* 產出：髮絲線外框；人工確認：相紙白外框 */
+  .node__tag {
+    flex: none;
+    display: inline-block;
+    padding: 0 var(--space-xs);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    line-height: 22px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .node__tag--check {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .chart__caption {
+    margin-top: var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .chart__caption .node__tag {
+    margin-right: var(--space-2xs);
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+    gap: 32px;
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .turn__h {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .turn__body {
+    max-width: 34em;
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-weight: 600;
+    line-height: 1.8;
+  }
+  .turn__body p + p {
+    margin-top: 1em;
+  }
+
+  @media (max-width: 900px) {
+    .lane__flow {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 32px;
+    }
+    .node__arrow {
+      top: -28px;
+      left: var(--space-lg);
+      transform: rotate(90deg);
+    }
+    .node--io {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+    }
+    .turn {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+  }
+  @media (max-width: 640px) {
+    .node--agent {
+      padding: 20px 20px var(--space-md);
+    }
+    .node--io {
+      padding: var(--space-sm) 20px;
+    }
+    .node__arrow {
+      left: 20px;
+    }
+  }
+</style>

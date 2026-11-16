@@ -278,4 +278,97 @@ export const ZH = {
     contactTitle: '聯絡我們',
     contact: { before: '想查詢、更正或刪除你寄給我們的資料，請來信 ', after: '。' },
   },
+  /**
+   * /process/script/：製作流程第 2 步「腳本與分鏡」的方法頁（版面在 src/views/ProcessScriptPage.astro）
+   * 流程圖是內部工作流程的簡化版：每個代理只寫角色、一句原則、產出與人工確認點。
+   * 刻意不寫 skill 名稱、知識庫檔名、內部審稿的關卡清單與數量、失敗檢查的項目、提示詞的欄位格式與字數上限。
+   */
+  processScript: {
+    title: '腳本與分鏡',
+    seoTitle: '腳本與分鏡：四個自研 AI 代理，從一句點子寫到影片提示詞',
+    description: (/** @type {number} */ agents, /** @type {number} */ checks) =>
+      `幻五把腳本與分鏡交給 ${agents} 個自研的 AI 代理：編劇、片名企劃、分鏡、提示詞，從一句點子寫到影片模型讀得懂的提示詞，中間有 ${checks} 個人工確認點。`,
+    meta: '製作流程第 2 步',
+    lead: 'AI 影片好不好看，很多在按下生成之前就決定了：故事有沒有寫好，鏡頭有沒有想清楚。',
+    spec: {
+      scope: '範圍',
+      scopeValue: '一句點子到影片提示詞',
+      agents: 'AI 代理',
+      agentsUnit: ' 個，皆為自研',
+      checks: '人工確認',
+      checksUnit: ' 處',
+      output: '產出',
+      outputValue: '文字，不直接生成畫面',
+    },
+    flowTitle: '從一句點子到影片提示詞',
+    intro:
+      '幻五把這一步交給四個自研的 AI 代理技能（Agent Skill），分成兩段：前段把點子寫成劇本、取好片名，後段把劇本拆成鏡頭，再轉成影片模型讀得懂的提示詞。每一段的成果都由人確認，才交給下一段。',
+    agentLabel: 'AI 代理',
+    outputTag: '產出',
+    checkTag: '人工確認',
+    /** 兩段流程；kind 是 io（輸入、產出）或 agent（AI 代理），checks 是人工確認點 */
+    lanes: [
+      {
+        id: 'story',
+        name: '故事',
+        sub: '把點子寫成劇本',
+        nodes: [
+          { kind: 'io', label: '輸入', text: '一句點子、角色或故事大綱' },
+          {
+            kind: 'agent',
+            no: '01',
+            name: '編劇',
+            body: '開寫前先問清楚設定、劇情與長度。交出來的初稿，已經在內部經過多輪審稿。',
+            output: '劇本初稿',
+            checks: ['回答提問', '讀劇本'],
+          },
+          {
+            kind: 'agent',
+            no: '02',
+            name: '片名企劃',
+            body: '讀完劇本、確認結局才取名。片名只承諾劇本給得出的內容，也不洩漏該藏的轉折。',
+            output: '3～5 個片名提案',
+            checks: ['選定片名'],
+          },
+          { kind: 'io', label: '產出', text: '定稿的劇本與片名' },
+        ],
+      },
+      {
+        id: 'picture',
+        name: '畫面',
+        sub: '把劇本變成鏡頭',
+        nodes: [
+          { kind: 'io', label: '輸入', text: '定稿的劇本' },
+          {
+            kind: 'agent',
+            no: '03',
+            name: '分鏡',
+            body: '把內心戲轉成看得見的動作與物件，再拆成鏡頭。露出最少，留給觀眾自己推論。',
+            output: '中文分鏡腳本',
+            checks: ['審分鏡腳本'],
+          },
+          {
+            kind: 'agent',
+            no: '04',
+            name: '提示詞',
+            body: '先鎖住角色外觀、場景與畫風，再寫動作、運鏡與聲音，讓每個鏡頭前後一致。',
+            output: '影片提示詞',
+            checks: [],
+          },
+          { kind: 'io', label: '交給', text: '影片模型生成' },
+        ],
+      },
+    ],
+    caption: '標出由人把關的地方。四個代理都只產出文字，不直接生成畫面。',
+    whyTitle: '為什麼拆成四個代理',
+    why: [
+      '一份萬用的提示詞，很難同時把故事寫好、把鏡頭想清楚，又顧到影片模型的讀法。拆成四個代理，每個只做一件事，寫作規則與檢查也只針對那一件事。',
+      '中間的劇本與分鏡腳本都是人讀得懂的中文：哪一段不對就改哪一段，改一個鏡頭不必重寫整份提示詞。故事成不成立、鏡頭該藏什麼，留給人判斷。',
+    ],
+    processTitle: '在製作流程裡的位置',
+    servicesLink: '服務總覽',
+    ctaTitle: '只有一句點子，也可以開始',
+    ctaLead: '告訴我們用途、片長與時程。還沒有腳本也沒關係，我們會從故事開始一起整理。',
+    ctaSecondary: '商業影片洽詢',
+  },
 };

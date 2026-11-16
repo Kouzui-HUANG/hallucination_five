@@ -43,7 +43,7 @@ export function langOf(url: URL): Lang {
   return splitLang(stripBase(url.pathname)).lang;
 }
 
-/** 有日文版的頁面（設計文件 §2-1）：作品頁、製作方法頁、404 只有繁中 */
+/** 有日文版的頁面（設計文件 §2-1）：作品頁、3D 動態預演頁（/process/previs/）、404 只有繁中。2026-11-16 起新增的頁面一律做日文版 */
 const JA_PAGES = [
   /^\/$/,
   /^\/works\/$/,
@@ -53,6 +53,7 @@ const JA_PAGES = [
   /^\/team\/[^/]+\/$/,
   /^\/contact\/$/,
   /^\/privacy\/$/,
+  /^\/process\/script\/$/,
 ];
 
 export function hasJa(path: string): boolean {
@@ -65,7 +66,7 @@ export function localize(path: string, lang: Lang): string {
   return path === '/' ? '/ja/' : `/ja${path}`;
 }
 
-/** 某語言的站內連結（含 base）。作品頁與製作方法頁只有繁中，日文頁也連到繁中版 */
+/** 某語言的站內連結（含 base）。只有繁中的頁面（作品頁、/process/previs/），日文頁也連到繁中版 */
 export function routesFor(lang: Lang) {
   const L = (p: string) => href(localize(p, lang));
   return {
@@ -76,7 +77,7 @@ export function routesFor(lang: Lang) {
     service: (slug: string) => L(`/services/${slug}/`),
     about: () => L('/about/'),
     team: (slug: string) => L(`/team/${slug}/`),
-    process: (slug: string) => href(`/process/${slug}/`),
+    process: (slug: string) => (hasJa(`/process/${slug}/`) ? L(`/process/${slug}/`) : href(`/process/${slug}/`)),
     contact: (service?: string) => (service ? `${L('/contact/')}?service=${service}` : L('/contact/')),
     privacy: () => L('/privacy/'),
   };
@@ -93,6 +94,7 @@ export function absRoutesFor(lang: Lang) {
     service: (slug: string) => A(`/services/${slug}/`),
     about: () => A('/about/'),
     team: (slug: string) => A(`/team/${slug}/`),
+    process: (slug: string) => (hasJa(`/process/${slug}/`) ? A(`/process/${slug}/`) : absUrl(`/process/${slug}/`)),
     contact: () => A('/contact/'),
     privacy: () => A('/privacy/'),
   };

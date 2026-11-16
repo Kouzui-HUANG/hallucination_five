@@ -36,7 +36,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ### 頁面
 
-建置後共 38 個頁面加上 404（繁中 26 頁、日文 12 頁）：
+建置後共 39 個頁面加上 404（繁中 26 頁、日文 13 頁）：
 
 | 路由 | 內容 |
 |---|---|
@@ -45,7 +45,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 | `/works/<slug>/` | 作品頁：影片、片長、導演、製作名單、使用工具、獲獎（12 頁） |
 | `/services/` | 服務總覽與製作流程 |
 | `/services/<slug>/` | 單項服務：適合誰、交付內容、相關作品（商業、短劇）或課程（內訓）、常見問題（4 頁） |
-| `/process/script/` | 製作流程 FRAME 02「腳本與分鏡」的方法頁：用流程圖說明四個自研 AI 代理（編劇、片名企劃、分鏡、提示詞）怎麼從一句點子寫到影片提示詞，以及中間的人工確認點。流程圖是內部工作流程的簡化版，刻意不寫 skill 名稱、知識庫、審稿關卡清單與提示詞格式；原始的完整流程圖不放進 repo |
+| `/process/script/` | 製作流程 FRAME 02「腳本與分鏡」的方法頁（有日文版）：用流程圖說明四個自研 AI 代理（編劇、片名企劃、分鏡、提示詞）怎麼從一句點子寫到影片提示詞，以及中間的人工確認點。版面在 `src/views/ProcessScriptPage.astro`，字串在 i18n 的 `processScript`。流程圖是內部工作流程的簡化版，刻意不寫 skill 名稱、知識庫、審稿關卡清單與提示詞格式；原始的完整流程圖不放進 repo |
 | `/process/previs/` | 製作流程 FRAME 03「3D 動態預演」的實際範例：預演與成片同步播放、怎麼做的、四個鏡頭的站位對照。影片在 `public/media/previs/`，劇照在 `src/assets/process/previs/`；流程條上有 `href` 的步驟會出現「看實際範例」連結 |
 | `/about/` | 名字的由來、沿革、我們相信的事、創辦人、公司資訊、相關計畫 |
 | `/team/<slug>/` | 創辦人頁：數字、專長、時間軸、作品與獲獎（2 頁） |
@@ -56,9 +56,11 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ### 日文版（`/ja/`）
 
-`/ja/`、`/ja/works/`、`/ja/services/`、`/ja/services/<slug>/`、`/ja/about/`、`/ja/team/<slug>/`、`/ja/contact/`、`/ja/privacy/`，共 12 頁（設計文件 §2-1）。
+`/ja/`、`/ja/works/`、`/ja/services/`、`/ja/services/<slug>/`、`/ja/process/script/`、`/ja/about/`、`/ja/team/<slug>/`、`/ja/contact/`、`/ja/privacy/`，共 13 頁（設計文件 §2-1）。
 
-- 作品頁與製作方法頁（`/process/script/`、`/process/previs/`）只有繁中：日文頁的作品卡連到繁中作品頁，資訊列標「中国語ページ」；片名、法定名稱、賽事與平台名照原文
+**2026-11-16 起，新增的頁面與內容一律同時做日文版**：版面寫成 `src/views/` 的共用 view，字串放進 `zh-Hant.mjs` 與 `ja.mjs` 的同一個鍵（`npm run check` 會擋缺漏），再在 `src/i18n/index.ts` 的 `JA_PAGES` 登記路徑。
+
+- 作品頁與 `/process/previs/`（在這條規則之前上線）只有繁中：日文頁的作品卡連到繁中作品頁，資訊列標「中国語ページ」；片名、法定名稱、賽事與平台名照原文
 - 兩種語言共用同一個 view（`src/views/*.astro`），語言由網址決定，所以版面與樣式只有一份
 - 有對應版本的頁面自動輸出 `hreflang`（`zh-Hant-TW` ↔ `ja-JP`，`x-default` 指向繁中），sitemap 也帶 alternate；頁首右側的「中｜日」切換到對應頁，沒有對應頁時（作品頁、404）連到另一個語言的首頁
 - 日文頁的內文用日文系統黑體、標題用 Noto Serif JP（同樣只下載用到的字），斷行用日文的 BudouX
