@@ -96,6 +96,11 @@ export const SECTIONS = [
     heading: '製作方法',
     pages: [
       {
+        path: '/process/script/',
+        title: '腳本與分鏡',
+        note: '四個自研 AI 代理（編劇、片名企劃、分鏡、提示詞）從一句點子寫到影片提示詞的工作流程，以及中間的人工確認點',
+      },
+      {
         path: '/process/previs/',
         title: '3D 動態預演',
         note: '用 Claude Opus 5.5 在 3D 導演台規劃走位與運鏡，再用 Seedance 2.5 生成寫實影片的實際範例（預演與成片對照、四個鏡頭的站位）',

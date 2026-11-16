@@ -357,7 +357,15 @@ export const SERVICE_JA_BY_SLUG = Object.fromEntries(SERVICES_JA.map((s) => [s.s
 /** 製作流程（日文）。no 與 services.mjs 的 PROCESS 相同 @type {ProcessStep[]} */
 export const PROCESS_JA = [
   { no: '01', name: 'ヒアリング', nameEn: 'BRIEF', body: '用途、視聴者、尺、予算、納品仕様を確認します。' },
-  { no: '02', name: '脚本と絵コンテ', nameEn: 'SCRIPT', body: 'まず物語を書き上げ、それからどの画面をAIに任せるかを決めます。' },
+  {
+    no: '02',
+    name: '脚本と絵コンテ',
+    nameEn: 'SCRIPT',
+    body: 'まず物語を書き上げ、それからどの画面をAIに任せるかを決めます。',
+    key: true,
+    href: '/process/script/',
+    linkLabel: 'ワークフローを見る（中国語）',
+  },
   {
     no: '03',
     name: '3Dプリビズ',

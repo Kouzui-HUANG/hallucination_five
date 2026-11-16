@@ -1,0 +1,426 @@
+---
+/**
+ * /process/script/ — 製作流程 FRAME 02「腳本與分鏡」的方法頁
+ * 頁首（問題）→ 流程圖（兩段、四個 AI 代理、人工確認點）→ 為什麼拆成四個代理 → 製作流程 → CTA
+ *
+ * 流程圖是內部工作流程的簡化版：每個代理只寫角色、一句原則、產出與人工確認點。
+ * 刻意不寫：skill 名稱、知識庫檔名、內部審稿的關卡清單與數量、失敗檢查的項目、提示詞的欄位格式與字數上限。
+ * 原始的完整流程圖不放進 repo（repo 是公開的）。
+ * 文案用客觀描述，不用第一人稱（CTA 的「我們」是全站慣例）。
+ * schema：WebPage
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import ProcessStrip from '../../components/ProcessStrip.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { routes, absRoutes } from '../../data/site';
+
+const PUBLISHED = '2026-11-16';
+
+type IoNode = { kind: 'io'; label: string; text: string };
+type AgentNode = { kind: 'agent'; no: string; name: string; body: string; output: string; checks: string[] };
+type Lane = { id: string; name: string; sub: string; nodes: (IoNode | AgentNode)[] };
+
+/** 兩段流程：前段寫故事，後段做畫面。checks 是人工確認點 */
+const LANES: Lane[] = [
+  {
+    id: 'story',
+    name: '故事',
+    sub: '把點子寫成劇本',
+    nodes: [
+      { kind: 'io', label: '輸入', text: '一句點子、角色或故事大綱' },
+      {
+        kind: 'agent',
+        no: '01',
+        name: '編劇',
+        body: '開寫前先問清楚設定、劇情與長度。交出來的初稿，已經在內部經過多輪審稿。',
+        output: '劇本初稿',
+        checks: ['回答提問', '讀劇本'],
+      },
+      {
+        kind: 'agent',
+        no: '02',
+        name: '片名企劃',
+        body: '讀完劇本、確認結局才取名。片名只承諾劇本給得出的內容，也不洩漏該藏的轉折。',
+        output: '3～5 個片名提案',
+        checks: ['選定片名'],
+      },
+      { kind: 'io', label: '產出', text: '定稿的劇本與片名' },
+    ],
+  },
+  {
+    id: 'picture',
+    name: '畫面',
+    sub: '把劇本變成鏡頭',
+    nodes: [
+      { kind: 'io', label: '輸入', text: '定稿的劇本' },
+      {
+        kind: 'agent',
+        no: '03',
+        name: '分鏡',
+        body: '把內心戲轉成看得見的動作與物件，再拆成鏡頭。露出最少，留給觀眾自己推論。',
+        output: '中文分鏡腳本',
+        checks: ['審分鏡腳本'],
+      },
+      {
+        kind: 'agent',
+        no: '04',
+        name: '提示詞',
+        body: '先鎖住角色外觀、場景與畫風，再寫動作、運鏡與聲音，讓每個鏡頭前後一致。',
+        output: '影片提示詞',
+        checks: [],
+      },
+      { kind: 'io', label: '交給', text: '影片模型生成' },
+    ],
+  },
+];
+
+const agents = LANES.flatMap((l) => l.nodes).filter((n): n is AgentNode => n.kind === 'agent');
+const checkCount = agents.reduce((sum, a) => sum + a.checks.length, 0);
+
+const pageUrl = absRoutes.process('script');
+const title = '腳本與分鏡';
+const description = `幻五把腳本與分鏡交給 ${agents.length} 個自研的 AI 代理：編劇、片名企劃、分鏡、提示詞，從一句點子寫到影片模型讀得懂的提示詞，中間有 ${checkCount} 個人工確認點。`;
+
+const schemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: `${title}｜幻五的方法`,
+    description,
+    inLanguage: 'zh-Hant-TW',
+    datePublished: PUBLISHED,
+    isPartOf: { '@id': absRoutes.websiteId() },
+    publisher: { '@id': absRoutes.organizationId() },
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  seoTitle="腳本與分鏡：四個自研 AI 代理，從一句點子寫到影片提示詞"
+  description={description}
+  schemas={schemas}
+  breadcrumbs={[
+    { name: '服務', item: absRoutes.services() },
+    { name: title, item: pageUrl },
+  ]}
+>
+  <PageHead
+    title={title}
+    meta={['製作流程第 2 步']}
+    lead="AI 影片好不好看，很多在按下生成之前就決定了：故事有沒有寫好，鏡頭有沒有想清楚。"
+    crumbs={[{ label: '服務', href: routes.services() }, { label: title }]}
+  >
+    <dl class="data-grid spec">
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">範圍</dt>
+        <dd class="data-grid__value">一句點子到影片提示詞</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">AI 代理</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{agents.length}</span> 個，皆為自研</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">人工確認</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{checkCount}</span> 處</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">產出</dt>
+        <dd class="data-grid__value">文字，不直接生成畫面</dd>
+      </div>
+    </dl>
+  </PageHead>
+
+  <!-- ── 流程圖 ───────────────────────── -->
+  <section class="section" aria-labelledby="flow-title">
+    <div class="container">
+      <SectionHead title="從一句點子到影片提示詞" id="flow-title" />
+      <p class="intro">
+        幻五把這一步交給四個自研的 AI 代理技能（Agent Skill），分成兩段：前段把點子寫成劇本、取好片名，後段把劇本拆成鏡頭，再轉成影片模型讀得懂的提示詞。每一段的成果都由人確認，才交給下一段。
+      </p>
+
+      <figure class="chart">
+        {
+          LANES.map((lane) => (
+            <div class="lane">
+              <h3 class="lane__name" id={`lane-${lane.id}`}>
+                <b>{lane.name}</b>
+                <span>{lane.sub}</span>
+              </h3>
+              <ol class="lane__flow" aria-labelledby={`lane-${lane.id}`}>
+                {lane.nodes.map((n, i) => (
+                  <li class:list={['node', `node--${n.kind}`]}>
+                    {i > 0 && (
+                      <span class="node__arrow" aria-hidden="true">
+                        <Icon name="arrow" size={16} />
+                      </span>
+                    )}
+                    {n.kind === 'io' ? (
+                      <>
+                        <span class="node__io-label">{n.label}</span>
+                        <span class="node__io-text">{n.text}</span>
+                      </>
+                    ) : (
+                      <>
+                        <p class="node__no">
+                          <span class="num">{n.no}</span>
+                          AI 代理
+                        </p>
+                        <h4 class="node__name">{n.name}</h4>
+                        <p class="node__body">{n.body}</p>
+                        <dl class="node__facts">
+                          <div class="node__fact">
+                            <dt class="node__tag">產出</dt>
+                            <dd>{n.output}</dd>
+                          </div>
+                          {n.checks.length > 0 && (
+                            <div class="node__fact">
+                              <dt class="node__tag node__tag--check">人工確認</dt>
+                              <dd>{n.checks.join('、')}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))
+        }
+        <figcaption class="chart__caption">
+          <span class="node__tag node__tag--check">人工確認</span>
+          標出由人把關的地方。四個代理都只產出文字，不直接生成畫面。
+        </figcaption>
+      </figure>
+
+      <div class="turn">
+        <h3 class="turn__h">為什麼拆成四個代理</h3>
+        <div class="turn__body">
+          <p>一份萬用的提示詞，很難同時把故事寫好、把鏡頭想清楚，又顧到影片模型的讀法。拆成四個代理，每個只做一件事，寫作規則與檢查也只針對那一件事。</p>
+          <p>中間的劇本與分鏡腳本都是人讀得懂的中文：哪一段不對就改哪一段，改一個鏡頭不必重寫整份提示詞。故事成不成立、鏡頭該藏什麼，留給人判斷。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 在流程裡的位置 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead title="在製作流程裡的位置" id="process-title" link={{ href: routes.services(), label: '服務總覽' }} />
+      <ProcessStrip current="02" />
+    </div>
+  </section>
+
+  <CtaBand
+    title="只有一句點子，也可以開始"
+    lead="告訴我們用途、片長與時程。還沒有腳本也沒關係，我們會從故事開始一起整理。"
+    service="series"
+    secondary={{ label: '商業影片洽詢', href: routes.contact('commercial') }}
+  />
+</BaseLayout>
+
+<style>
+  .spec {
+    max-width: 880px;
+    margin-top: 36px;
+  }
+  .spec dd {
+    margin: 0;
+  }
+  .intro {
+    max-width: 40em;
+    margin-bottom: var(--space-xl);
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--text-soft);
+  }
+
+  /* ── 流程圖 ─────────────────────────────── */
+  .lane + .lane {
+    margin-top: var(--space-xl);
+  }
+  .lane__name {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .lane__name b {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .lane__name span {
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .lane__flow {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 0.7fr);
+    column-gap: var(--space-xl);
+  }
+  .node {
+    position: relative;
+    border: 1px solid var(--line);
+  }
+  /* 節點之間的箭頭（Icon 的 arrow；窄螢幕轉成朝下） */
+  .node__arrow {
+    position: absolute;
+    top: 50%;
+    left: -32px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: var(--muted);
+    transform: translateY(-50%);
+  }
+
+  .node--io {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding: 20px;
+  }
+  .node__io-label {
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .node__io-text {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .node--agent {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-lg) var(--space-lg) 20px;
+    background: var(--bg-raised);
+  }
+  .node__no {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .node__name {
+    margin-top: var(--space-2xs);
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .node__body {
+    margin-top: var(--space-sm);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-soft);
+  }
+  .node__facts {
+    display: grid;
+    gap: var(--space-xs);
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .node__fact {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    font-size: var(--text-sm);
+  }
+  .node__fact dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  /* 產出：髮絲線外框；人工確認：相紙白外框 */
+  .node__tag {
+    flex: none;
+    display: inline-block;
+    padding: 0 var(--space-xs);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    line-height: 22px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .node__tag--check {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .chart__caption {
+    margin-top: var(--space-lg);
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .chart__caption .node__tag {
+    margin-right: var(--space-2xs);
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+    gap: 32px;
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .turn__h {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .turn__body {
+    max-width: 34em;
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-weight: 600;
+    line-height: 1.8;
+  }
+  .turn__body p + p {
+    margin-top: 1em;
+  }
+
+  @media (max-width: 900px) {
+    .lane__flow {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 32px;
+    }
+    .node__arrow {
+      top: -28px;
+      left: var(--space-lg);
+      transform: rotate(90deg);
+    }
+    .node--io {
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+    }
+    .turn {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+  }
+  @media (max-width: 640px) {
+    .node--agent {
+      padding: 20px 20px var(--space-md);
+    }
+    .node--io {
+      padding: var(--space-sm) 20px;
+    }
+    .node__arrow {
+      left: 20px;
+    }
+  }
+</style>

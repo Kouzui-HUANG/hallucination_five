@@ -371,14 +371,22 @@ export const SERVICE_BY_SLUG = Object.fromEntries(SERVICES.map((s) => [s.slug, s
  * @property {string} nameEn
  * @property {string} body
  * @property {boolean} [key]   幻五的方法
- * @property {string} [href]   有實際範例頁時填站內路徑（不含 base），底片條會出現連結
+ * @property {string} [href]   有方法頁時填站內路徑（不含 base），流程條會出現連結
  * @property {string} [linkLabel]
  */
 
 /** 製作流程（首頁與服務總覽共用；key = 幻五的方法） @type {ProcessStep[]} */
 export const PROCESS = [
   { no: '01', name: '需求訪談', nameEn: 'BRIEF', body: '確認用途、受眾、片長、預算與交付規格。' },
-  { no: '02', name: '腳本與分鏡', nameEn: 'SCRIPT', body: '先把故事寫好，再決定哪些畫面交給 AI。' },
+  {
+    no: '02',
+    name: '腳本與分鏡',
+    nameEn: 'SCRIPT',
+    body: '先把故事寫好，再決定哪些畫面交給 AI。',
+    key: true,
+    href: '/process/script/',
+    linkLabel: '看工作流程',
+  },
   {
     no: '03',
     name: '3D 動態預演',
