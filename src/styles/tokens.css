@@ -34,6 +34,11 @@
   --accent-a20: rgb(255 77 61 / 0.2);
   --accent-a26: rgb(255 77 61 / 0.26);
 
+  /* 圖表線色：只給圖片裡已經畫好的線做圖例（/process/design/ 的側臉輪廓圖），色值取自原圖，不當介面色用 */
+  --chart-model: rgb(235 120 20); /* 橘：3D 模型 */
+  --chart-with: rgb(30 170 80); /* 綠：用 3D 模型的設定圖 */
+  --chart-without: rgb(40 120 230); /* 藍：不用 3D 模型的設定圖 */
+
   /* Hallmark 的角色名（sloplint 用這些檢查對比與 accent 配對） */
   --color-paper: var(--bg);
   --color-paper-2: var(--bg-raised);

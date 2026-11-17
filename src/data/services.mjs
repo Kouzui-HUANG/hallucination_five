@@ -402,6 +402,8 @@ export const PROCESS = [
     nameEn: 'DESIGN',
     body: '先做角色設定表與場景美術，鎖住整部片的一致性。',
     key: true,
+    href: '/process/design/',
+    linkLabel: '看工作流程',
   },
   { no: '05', name: '生成與篩選', nameEn: 'GENERATE', body: '每一格畫面都由人挑選、重生成與調整。' },
   { no: '06', name: '剪輯、配樂與交付', nameEn: 'FINISH', body: '剪輯、配樂、字幕與調色，依平台規格交付。' },

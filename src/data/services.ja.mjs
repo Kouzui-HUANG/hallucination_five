@@ -380,6 +380,8 @@ export const PROCESS_JA = [
     nameEn: 'DESIGN',
     body: 'キャラクター設定表と背景美術を先に作り、作品全体の一貫性を固定します。',
     key: true,
+    href: '/process/design/',
+    linkLabel: 'ワークフローを見る',
   },
   { no: '05', name: '生成と選別', nameEn: 'GENERATE', body: 'すべてのカットを人が選び、再生成し、調整します。' },
   { no: '06', name: '編集、音楽と納品', nameEn: 'FINISH', body: '編集、音楽、字幕、カラーグレーディングを行い、各プラットフォームの仕様で納品します。' },

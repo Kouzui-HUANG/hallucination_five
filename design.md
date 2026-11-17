@@ -32,6 +32,7 @@
 - 列舉用頓號「、」。間隔號「・」只放在兩個並列的名稱之間（人名、鏡頭運動與景別），不串三項以上；資訊列的年份、類別、時間碼各自一格。
 - 圖示只用 `src/components/Icon.astro` 的 inline SVG，不用 ▶ ✉ ↗ 這類字元。
 - 元件裡不寫色碼與字體名，一律用 token。
+- 圖表線色 `--chart-model`、`--chart-with`、`--chart-without`（橘、綠、藍）只用來給圖片裡已經畫好的線做圖例（`/process/design/` 的側臉輪廓圖），不當介面色用。
 
 ## Controls
 - Primary: 安全燈紅實心 · 2px 圓角 · 48px 高（大 52、小 44）

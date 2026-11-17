@@ -36,7 +36,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ### 頁面
 
-建置後共 39 個頁面加上 404（繁中 26 頁、日文 13 頁）：
+建置後共 41 個頁面加上 404（繁中 27 頁、日文 14 頁）：
 
 | 路由 | 內容 |
 |---|---|
@@ -47,6 +47,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 | `/services/<slug>/` | 單項服務：適合誰、交付內容、相關作品（商業、短劇）或課程（內訓）、常見問題（4 頁） |
 | `/process/script/` | 製作流程 FRAME 02「腳本與分鏡」的方法頁（有日文版）：用流程圖說明四個自研 AI 代理（編劇、片名企劃、分鏡、提示詞）怎麼從一句點子寫到影片提示詞，以及中間的人工確認點。版面在 `src/views/ProcessScriptPage.astro`，字串在 i18n 的 `processScript`。流程圖是內部工作流程的簡化版，刻意不寫 skill 名稱、知識庫、審稿關卡清單與提示詞格式；原始的完整流程圖不放進 repo |
 | `/process/previs/` | 製作流程 FRAME 03「3D 動態預演」的實際範例：預演與成片同步播放、怎麼做的、四個鏡頭的站位對照。影片在 `public/media/previs/`，劇照在 `src/assets/process/previs/`；流程條上有 `href` 的步驟會出現「看實際範例」連結 |
+| `/process/design/` | 製作流程 FRAME 04「角色與場景設定」的方法頁（有日文版），主旨是「角色資產不是一張圖片」：以照片為準建立人物的 3D 模型（照片擬合四格與誤差）→ 用模型做多角度設定圖（有無模型兩組對照、側臉輪廓實測）→ 用設定圖生成影片。版面在 `src/views/ProcessDesignPage.astro`，量測數字也在這個檔案，字串在 i18n 的 `processDesign`。原圖裡的中文標籤與數字說明已裁掉、改用 HTML，日文頁才能翻譯；圖片在 `src/assets/process/design/`，影片在 `public/media/design/` |
 | `/about/` | 名字的由來、沿革、我們相信的事、創辦人、公司資訊、相關計畫 |
 | `/team/<slug>/` | 創辦人頁：數字、專長、時間軸、作品與獲獎（2 頁） |
 | `/contact/` | 洽詢：依服務分類的 Email 範本（預填主旨與欄位）；`?service=<slug>` 會把該服務排在第一個 |
@@ -56,7 +57,7 @@ Astro 6 靜態站，內容寫在 Markdown 與資料檔裡，push 到 `main` 就�
 
 ### 日文版（`/ja/`）
 
-`/ja/`、`/ja/works/`、`/ja/services/`、`/ja/services/<slug>/`、`/ja/process/script/`、`/ja/about/`、`/ja/team/<slug>/`、`/ja/contact/`、`/ja/privacy/`，共 13 頁（設計文件 §2-1）。
+`/ja/`、`/ja/works/`、`/ja/services/`、`/ja/services/<slug>/`、`/ja/process/script/`、`/ja/process/design/`、`/ja/about/`、`/ja/team/<slug>/`、`/ja/contact/`、`/ja/privacy/`，共 14 頁（設計文件 §2-1）。
 
 **2026-11-16 起，新增的頁面與內容一律同時做日文版**：版面寫成 `src/views/` 的共用 view，字串放進 `zh-Hant.mjs` 與 `ja.mjs` 的同一個鍵（`npm run check` 會擋缺漏），再在 `src/i18n/index.ts` 的 `JA_PAGES` 登記路徑。
 

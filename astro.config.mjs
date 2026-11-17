@@ -262,6 +262,7 @@ const STATIC_PAGES = [
   ['/contact/', ['src/views/ContactPage.astro']],
   ['/privacy/', ['src/views/PrivacyPage.astro']],
   ['/process/script/', ['src/views/ProcessScriptPage.astro']],
+  ['/process/design/', ['src/views/ProcessDesignPage.astro']],
 ];
 const ZH_ONLY_PAGES = [['/process/previs/', ['src/pages/process/previs.astro']]];
 

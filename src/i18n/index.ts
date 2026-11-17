@@ -54,6 +54,7 @@ const JA_PAGES = [
   /^\/contact\/$/,
   /^\/privacy\/$/,
   /^\/process\/script\/$/,
+  /^\/process\/design\/$/,
 ];
 
 export function hasJa(path: string): boolean {

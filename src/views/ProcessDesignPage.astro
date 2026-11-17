@@ -1,0 +1,777 @@
+---
+/**
+ * 製作流程 FRAME 04「角色與場景設定」的方法頁：角色資產（/process/design/ 與 /ja/process/design/ 共用）
+ * 頁首（角色資產不是一張圖片）→ 三個步驟 → 以照片建立 3D 模型 → 用模型做多角度設定圖（兩組對照、側臉輪廓實測、為什麼）
+ * → 用設定圖生成影片 → 製作流程 → CTA
+ *
+ * 字串在 i18n 的 processDesign；量測數字在這個檔案的 FIT、PROFILE（兩種語言共用，數字只有一份）。
+ * 圖片在 src/assets/process/design/。原圖裡的中文標籤與數字說明已經裁掉，改用 HTML 呈現，日文頁才能翻譯：
+ *   fit-*.jpg              照片擬合的四格（照片、3D 模型、疊合 50%、特徵點）
+ *   sheet-*-model.jpg      多角度設定圖（不用模型、用模型做圖生圖）
+ *   profile-contours.png   側臉輪廓比對圖；線色對應 tokens.css 的 --chart-*
+ *   turnaround-poster.jpg  影片的第一格
+ * 影片自架在 public/media/design/（H.264、faststart、無聲，preload="none"）。原檔帶的影片 ID 已去除，保留 AI 生成標記（UserComment）。
+ * 文案用客觀描述，不用第一人稱（CTA 的「我們」是全站慣例）；示範角色沒有名字，不要自己取。
+ * schema：WebPage ＋ VideoObject
+ */
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import ProcessStrip from '../components/ProcessStrip.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { href, absUrl, absAsset, absRoutes as siteIds } from '../data/site';
+import { LANG_META, absRoutesFor, langOf, routesFor, t } from '../i18n';
+
+import fitPhoto from '../assets/process/design/fit-photo.jpg';
+import fitModel from '../assets/process/design/fit-model.jpg';
+import fitOverlay from '../assets/process/design/fit-overlay.jpg';
+import fitLandmarks from '../assets/process/design/fit-landmarks.jpg';
+import sheetWithout from '../assets/process/design/sheet-without-model.jpg';
+import sheetWith from '../assets/process/design/sheet-with-model.jpg';
+import profileContours from '../assets/process/design/profile-contours.png';
+import turnaroundPoster from '../assets/process/design/turnaround-poster.jpg';
+
+const PUBLISHED = '2026-11-17';
+
+/** 站內路徑（不含 base）：模板用 href()，schema 用 absUrl() */
+const VIDEO = { src: '/media/design/turnaround.mp4', duration: 12 };
+
+/** 照片擬合：誤差以瞳距為 100%；yaw（頭轉）、pitch（俯仰）是度數，focal 是焦距 mm */
+const FIT = { landmark: 1.93, contour: 1.34, yaw: -1, pitch: -5, focal: 60 };
+
+/**
+ * 側臉輪廓實測（mm），三條輪廓線先對齊再量。
+ * rms：鼻根到下巴底整條輪廓與模型的垂直距離（均方根）
+ * points：順序對應 copy.points（鼻尖、上唇、下唇、下巴），每項 [用模型, 不用模型]；+ 比模型凸出、− 比模型內縮
+ * nose：鼻根到鼻尖占鼻根到下巴底的比例（%）；short 是比模型短的長度（mm）
+ */
+const PROFILE = {
+  rms: { with: 0.58, without: 0.98 },
+  points: [
+    [-0.9, -1.3],
+    [-0.4, -0.8],
+    [-0.5, -1.2],
+    [0.6, 0.5],
+  ],
+  nose: { model: 30.2, with: 27.8, without: 26.0, shortWith: 2.5, shortWithout: 4.3 },
+};
+
+const lang = langOf(Astro.url);
+const dict = t(lang);
+const copy = dict.processDesign;
+const routes = routesFor(lang);
+const absRoutes = absRoutesFor(lang);
+
+/** 帶正負號的數值：負號用 U+2212 */
+const signed = (n: number, digits = 1) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(digits)}`;
+const mm = (n: number) => n.toFixed(2);
+
+const lips = [PROFILE.points[1][1], PROFILE.points[2][1]].map((n) => Math.abs(n)).sort((a, b) => a - b);
+const rmsCut = Math.round(((PROFILE.rms.without - PROFILE.rms.with) / PROFILE.rms.without) * 100);
+const findings = copy.findings(
+  PROFILE.nose.shortWithout.toFixed(1),
+  `${lips[0].toFixed(1)}～${lips[1].toFixed(1)}`,
+  String(rmsCut),
+  PROFILE.nose.shortWith.toFixed(1),
+);
+
+const fitImages = [fitPhoto, fitModel, fitOverlay, fitLandmarks];
+const fitPanels = copy.fitPanels.map((p, i) => ({ ...p, src: fitImages[i] }));
+const sheets = copy.sheets.map((s, i) => ({ ...s, key: i === 0 ? 'without' : 'with', src: i === 0 ? sheetWithout : sheetWith }));
+const legendKeys = ['model', 'with', 'without'] as const;
+const noseRows = [
+  { key: 'model', ratio: PROFILE.nose.model, short: null },
+  { key: 'with', ratio: PROFILE.nose.with, short: PROFILE.nose.shortWith },
+  { key: 'without', ratio: PROFILE.nose.without, short: PROFILE.nose.shortWithout },
+] as const;
+
+/* og 圖、影片封面與 schema 縮圖 */
+const og = await getImage({ src: sheetWith, width: 1200, height: 630, format: 'jpg', quality: 80 });
+const poster = await getImage({ src: turnaroundPoster, width: 1280, format: 'webp', quality: 75 });
+
+const pageUrl = absRoutes.process('design');
+const description = copy.description(mm(PROFILE.rms.without), mm(PROFILE.rms.with));
+
+const schemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: `${copy.title}｜${dict.process.key}`,
+    description,
+    inLanguage: LANG_META[lang].hreflang,
+    datePublished: PUBLISHED,
+    isPartOf: { '@id': siteIds.websiteId() },
+    publisher: { '@id': siteIds.organizationId() },
+    primaryImageOfPage: absAsset(og.src),
+    video: { '@id': `${pageUrl}#turnaround` },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    '@id': `${pageUrl}#turnaround`,
+    name: copy.videoName,
+    description: copy.videoIntro,
+    thumbnailUrl: [absAsset(poster.src)],
+    uploadDate: `${PUBLISHED}T00:00:00+08:00`,
+    duration: `PT${VIDEO.duration}S`,
+    contentUrl: absUrl(VIDEO.src),
+    inLanguage: LANG_META[lang].hreflang,
+    isPartOf: { '@id': `${pageUrl}#webpage` },
+    productionCompany: { '@id': siteIds.organizationId() },
+    publisher: { '@id': siteIds.organizationId() },
+  },
+];
+---
+
+<BaseLayout
+  title={copy.title}
+  seoTitle={copy.seoTitle}
+  description={description}
+  ogImage={og.src}
+  schemas={schemas}
+  breadcrumbs={[
+    { name: dict.crumbs.services, item: absRoutes.services() },
+    { name: copy.crumb, item: pageUrl },
+  ]}
+>
+  <PageHead
+    title={copy.title}
+    meta={[copy.meta]}
+    lead={copy.lead}
+    crumbs={[{ label: dict.crumbs.services, href: routes.services() }, { label: copy.crumb }]}
+  >
+    <dl class="data-grid spec">
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.source}</dt>
+        <dd class="data-grid__value">{copy.spec.sourceValue}</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.fit}</dt>
+        <dd class="data-grid__value"><span class="data-grid__value--mono">{FIT.landmark.toFixed(2)}</span>%</dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.profile}</dt>
+        <dd class="data-grid__value spec__change">
+          <span class="data-grid__value--mono">{mm(PROFILE.rms.without)}</span>
+          <span class="spec__arrow" aria-hidden="true"><Icon name="arrow" size={14} /></span>
+          <span class="visually-hidden">{copy.spec.profileTo}</span>
+          <span class="data-grid__value--mono">{mm(PROFILE.rms.with)}</span> mm
+        </dd>
+      </div>
+      <div class="data-grid__cell">
+        <dt class="data-grid__label">{copy.spec.output}</dt>
+        <dd class="data-grid__value">{copy.spec.outputValue}</dd>
+      </div>
+    </dl>
+  </PageHead>
+
+  <!-- ── 三個步驟 ───────────────────────── -->
+  <section class="section" aria-labelledby="flow-title">
+    <div class="container">
+      <SectionHead title={copy.flowTitle} id="flow-title" />
+      <p class="intro">{copy.intro}</p>
+      <ol class="flow">
+        {
+          copy.steps.map((s, i) => (
+            <li class="flow__step">
+              {i > 0 && (
+                <span class="flow__arrow" aria-hidden="true">
+                  <Icon name="arrow" size={12} />
+                </span>
+              )}
+              <span class="flow__no">{s.no}</span>
+              <h3 class="flow__name">{s.name}</h3>
+              <p class="flow__body">{s.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ── 以照片建立 3D 模型 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="fit-title">
+    <div class="container">
+      <SectionHead title={copy.fitTitle} id="fit-title" />
+      <p class="intro">{copy.fitIntro}</p>
+
+      <figure class="fit">
+        <ol class="fit__panels">
+          {
+            fitPanels.map((p) => (
+              <li class="fit__panel">
+                <Image src={p.src} alt={p.alt} widths={[300, 500]} sizes="(max-width: 900px) 50vw, 296px" loading="lazy" decoding="async" />
+                <p class="fit__label">{p.label}</p>
+              </li>
+            ))
+          }
+        </ol>
+        <figcaption class="note">{copy.fitNote}</figcaption>
+      </figure>
+
+      <dl class="data-grid facts">
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">{copy.fitFacts.landmark}</dt>
+          <dd class="data-grid__value facts__value"><span class="data-grid__value--mono">{FIT.landmark.toFixed(2)}</span>%</dd>
+        </div>
+        <div class="data-grid__cell">
+          <dt class="data-grid__label">{copy.fitFacts.contour}</dt>
+          <dd class="data-grid__value facts__value"><span class="data-grid__value--mono">{FIT.contour.toFixed(2)}</span>%</dd>
+        </div>
+        <div class="data-grid__cell facts__wide">
+          <dt class="data-grid__label">{copy.fitFacts.camera}</dt>
+          <dd class="data-grid__value facts__value">
+            {copy.fitFacts.yaw} <span class="data-grid__value--mono">{signed(FIT.yaw, 0)}°</span>、{copy.fitFacts.pitch}
+            <span class="data-grid__value--mono">{signed(FIT.pitch, 0)}°</span>、{copy.fitFacts.focal}
+            <span class="data-grid__value--mono">{FIT.focal}</span> mm
+          </dd>
+        </div>
+      </dl>
+      <p class="note">{copy.fitFacts.basis}</p>
+    </div>
+  </section>
+
+  <!-- ── 用模型做多角度設定圖 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="sheet-title">
+    <div class="container">
+      <SectionHead title={copy.sheetTitle} id="sheet-title" />
+      <p class="intro">{copy.sheetIntro}</p>
+
+      <div class="sheets">
+        {
+          sheets.map((s) => (
+            <figure class="sheet">
+              <figcaption class="sheet__label">
+                <span class={`swatch swatch--${s.key}`} aria-hidden="true" />
+                {s.label}
+              </figcaption>
+              <div class="sheet__frame">
+                <Image src={s.src} alt={s.alt} widths={[800, 1280, 2000]} sizes="(max-width: 1280px) 100vw, 1184px" loading="lazy" decoding="async" />
+              </div>
+            </figure>
+          ))
+        }
+      </div>
+
+      <!-- 側臉輪廓實測 -->
+      <div class="measure">
+        <h3 class="measure__title">{copy.measureTitle}</h3>
+        <p class="measure__intro">{copy.measureIntro}</p>
+
+        <div class="measure__grid">
+          <figure class="measure__chart">
+            <Image
+              src={profileContours}
+              alt={copy.chartAlt}
+              widths={[400, 660]}
+              sizes="(max-width: 900px) 80vw, 460px"
+              quality={90}
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+
+          <div class="measure__data">
+            <ul class="legend">
+              {
+                legendKeys.map((k) => (
+                  <li>
+                    <span class={`swatch swatch--${k}`} aria-hidden="true" />
+                    {copy.legend[k]}
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="block">
+              <p class="block__title">{copy.rms}</p>
+              <dl class="rms">
+                <div class="rms__item">
+                  <dt>{copy.legend.without}</dt>
+                  <dd><span class="rms__num">{mm(PROFILE.rms.without)}</span> mm</dd>
+                </div>
+                <div class="rms__item rms__item--with">
+                  <dt>{copy.legend.with}</dt>
+                  <dd><span class="rms__num">{mm(PROFILE.rms.with)}</span> mm</dd>
+                </div>
+              </dl>
+              <p class="note">{copy.rmsNote}</p>
+            </div>
+
+            <div class="block">
+              <table class="points">
+                <caption class="block__title">{copy.pointsTitle}（mm）</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{copy.pointsHead}</th>
+                    <th scope="col">{copy.legend.with}</th>
+                    <th scope="col">{copy.legend.without}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    copy.points.map((name, i) => (
+                      <tr>
+                        <th scope="row">{name}</th>
+                        <td class="num">{signed(PROFILE.points[i][0])}</td>
+                        <td class="num">{signed(PROFILE.points[i][1])}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+              <p class="note">{copy.signNote}</p>
+            </div>
+
+            <div class="block">
+              <p class="block__title">{copy.noseTitle}</p>
+              <dl class="nose">
+                {
+                  noseRows.map((r) => (
+                    <div class="nose__row">
+                      <dt>
+                        <span class={`swatch swatch--${r.key}`} aria-hidden="true" />
+                        {copy.legend[r.key]}
+                      </dt>
+                      <dd>
+                        <span class="num">{r.ratio.toFixed(1)}</span>%
+                        {r.short !== null && <small class="nose__short num">{signed(-r.short)} mm</small>}
+                      </dd>
+                    </div>
+                  ))
+                }
+              </dl>
+              <p class="note">{copy.noseNote}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="findings">
+          {findings.map((p) => <p>{p}</p>)}
+        </div>
+      </div>
+
+      <div class="turn">
+        <h3 class="turn__h">{copy.whyTitle}</h3>
+        <div class="turn__body">
+          {copy.why.map((p) => <p>{p}</p>)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 用設定圖生成影片 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="video-title">
+    <div class="container">
+      <SectionHead title={copy.videoTitle} id="video-title" />
+      <p class="intro">{copy.videoIntro}</p>
+      <figure class="clip">
+        <div class="clip__frame">
+          <video
+            src={href(VIDEO.src)}
+            poster={poster.src}
+            width="1280"
+            height="720"
+            preload="none"
+            muted
+            loop
+            playsinline
+            controls
+            aria-label={copy.videoName}
+          ></video>
+        </div>
+        <figcaption class="note">{copy.videoCaption}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ── 在流程裡的位置 ───────────────────────── -->
+  <section class="section section--tight" aria-labelledby="process-title">
+    <div class="container">
+      <SectionHead title={copy.processTitle} id="process-title" link={{ href: routes.services(), label: copy.servicesLink }} />
+      <ProcessStrip current="04" />
+    </div>
+  </section>
+
+  <CtaBand
+    title={copy.ctaTitle}
+    lead={copy.ctaLead}
+    service="series"
+    secondary={{ label: copy.ctaSecondary, href: routes.contact('commercial') }}
+  />
+</BaseLayout>
+
+<style>
+  .spec {
+    max-width: 880px;
+    margin-top: 36px;
+  }
+  .spec dd {
+    margin: 0;
+  }
+  .spec__change {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 var(--space-xs);
+  }
+  .spec__arrow {
+    display: inline-grid;
+    color: var(--muted);
+  }
+  .intro {
+    max-width: 40em;
+    margin-bottom: var(--space-xl);
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--text-soft);
+  }
+  .note {
+    margin-top: var(--space-sm);
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+
+  /* 圖例色塊：短線段，顏色對應圖片裡的輪廓線 */
+  .swatch {
+    flex: none;
+    display: inline-block;
+    width: 20px;
+    height: 3px;
+    background: var(--swatch);
+  }
+  .swatch--model {
+    --swatch: var(--chart-model);
+  }
+  .swatch--with {
+    --swatch: var(--chart-with);
+  }
+  .swatch--without {
+    --swatch: var(--chart-without);
+  }
+
+  /* ── 三個步驟 ─────────────────────────────── */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .flow__step {
+    position: relative;
+    padding: 28px 32px 32px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  /* 步驟之間的箭頭（Icon 的 arrow；窄螢幕轉成朝下） */
+  .flow__arrow {
+    position: absolute;
+    top: 26px;
+    left: -11px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--muted);
+    background: var(--bg);
+  }
+  .flow__no {
+    font: var(--text-xs) var(--font-latin);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .flow__name {
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .flow__body {
+    margin-top: var(--space-sm);
+    color: var(--text-soft);
+  }
+
+  /* ── 照片擬合 ─────────────────────────────── */
+  .fit__panels {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-xs);
+  }
+  .fit__panel img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 500 / 591;
+    object-fit: cover;
+    background: var(--bg-raised);
+  }
+  .fit__label {
+    margin-top: var(--space-xs);
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .facts {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+    margin-top: var(--space-xl);
+  }
+  .facts dd {
+    margin: 0;
+  }
+  .facts__value {
+    font-size: 17px;
+  }
+
+  /* ── 多角度設定圖 ─────────────────────────────── */
+  .sheets {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  .sheet__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .sheet__frame {
+    overflow: hidden;
+    background: var(--text);
+    border: 1px solid var(--line);
+  }
+  .sheet__frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── 側臉輪廓實測 ─────────────────────────────── */
+  .measure {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--line);
+  }
+  .measure__title {
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .measure__intro {
+    max-width: 40em;
+    margin-top: var(--space-sm);
+    color: var(--text-soft);
+  }
+  .measure__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-xl);
+    align-items: start;
+    margin-top: var(--space-xl);
+  }
+  .measure__chart img {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-lg);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .block {
+    margin-top: var(--space-xl);
+  }
+  .block__title {
+    margin-bottom: var(--space-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-align: left;
+    color: var(--muted);
+  }
+
+  .rms {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .rms__item {
+    padding: var(--space-md) 20px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .rms__item--with {
+    background: var(--bg-raised);
+  }
+  .rms dt {
+    font-size: var(--text-sm);
+    color: var(--muted);
+  }
+  .rms dd {
+    margin: var(--space-2xs) 0 0;
+    font-weight: 600;
+  }
+  .rms__num {
+    font: 600 clamp(32px, 3.4vw, 44px) / 1.1 var(--font-figure);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .points {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+  .points th,
+  .points td {
+    padding: var(--space-xs) var(--space-sm);
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+  }
+  .points th:first-child {
+    padding-left: 0;
+    text-align: left;
+  }
+  .points thead th {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+  .points tbody th {
+    font-weight: 600;
+  }
+  .points td {
+    font-size: 15px;
+  }
+
+  .nose {
+    border-top: 1px solid var(--line);
+  }
+  .nose__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .nose dt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  .nose dd {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .nose__short {
+    margin-left: var(--space-sm);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .findings {
+    max-width: 40em;
+    margin-top: var(--space-xl);
+    font-size: 17px;
+    line-height: 1.9;
+  }
+  .findings p + p {
+    margin-top: 1em;
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+    gap: 32px;
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .turn__h {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .turn__body {
+    max-width: 34em;
+    font-size: clamp(18px, 1.8vw, 22px);
+    font-weight: 600;
+    line-height: 1.8;
+  }
+  .turn__body p + p {
+    margin-top: 1em;
+  }
+
+  /* ── 影片 ─────────────────────────────── */
+  .clip__frame {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+  }
+  .clip__frame video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (max-width: 900px) {
+    .flow {
+      grid-template-columns: 1fr;
+    }
+    .flow__arrow {
+      top: -11px;
+      left: 32px;
+      transform: rotate(90deg);
+    }
+    .fit__panels {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: var(--space-md);
+    }
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .facts__wide {
+      grid-column: 1 / -1;
+    }
+    .measure__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .measure__chart {
+      max-width: 420px;
+    }
+    .turn {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+  }
+  @media (max-width: 640px) {
+    .flow__step {
+      padding: var(--space-lg) 20px 28px;
+    }
+    .flow__arrow {
+      left: 20px;
+    }
+    .rms__item {
+      padding: var(--space-sm) var(--space-md);
+    }
+  }
+</style>

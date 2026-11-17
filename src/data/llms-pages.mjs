@@ -105,6 +105,11 @@ export const SECTIONS = [
         title: '3D 動態預演',
         note: '用 Claude Opus 5.5 在 3D 導演台規劃走位與運鏡，再用 Seedance 2.5 生成寫實影片的實際範例（預演與成片對照、四個鏡頭的站位）',
       },
+      {
+        path: '/process/design/',
+        title: '角色資產',
+        note: '角色資產不是一張圖片：以照片為準建立人物的 3D 模型，再用模型做多角度設定圖與影片；附側臉輪廓的實測（平均偏差 0.98 mm 降到 0.58 mm）',
+      },
     ],
   },
   ...(idx.team.length
@@ -131,6 +136,12 @@ export const SECTIONS = [
         path: '/ja/process/script/',
         title: '脚本と絵コンテ',
         note: '自社開発の4つのAIエージェント（脚本、タイトル企画、コンテ、プロンプト）で、一行のアイデアから映像プロンプトまで仕上げるワークフローと、人が確認するポイント',
+        optional: true,
+      },
+      {
+        path: '/ja/process/design/',
+        title: 'キャラクターアセット',
+        note: 'キャラクターアセットは一枚の画像ではない：写真をもとに人物の3Dモデルを作り、モデルから多角度の設定画と映像を作るワークフロー。横顔の輪郭の実測つき（平均偏差 0.98 mm から 0.58 mm）',
         optional: true,
       },
       { path: '/ja/about/', title: '幻五映像について', note: '沿革、社名の由来、会社情報', optional: true },
